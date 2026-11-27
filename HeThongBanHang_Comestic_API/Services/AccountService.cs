@@ -30,15 +30,15 @@ namespace HeThongBanHang_Comestic_API.Services
         public async Task<LoginResponseDTO?> LoginAsync(LoginDTO model)
         {
             // 1. Chuẩn hóa Username hoặc Email người dùng nhập
-            string login = model.UserNameOrEmail.Trim();
-            string normalizedLogin = login.ToUpperInvariant();
+            // 1. Chuẩn hóa Username hoặc Email về chữ thường
+            string login = model.UserNameOrEmail.Trim().ToLower();
 
-            // 2. Tìm tài khoản và lấy luôn danh sách Role
+            // 2. Tìm trực tiếp theo UserName hoặc Email (không cần Normalized in hoa)
             var user = await _context.Users
                 .Include(u => u.Roles)
                 .FirstOrDefaultAsync(u =>
-                    u.NormalizedUserName == normalizedLogin ||
-                    u.NormalizedEmail == normalizedLogin);
+                    (u.UserName != null && u.UserName.ToLower() == login) ||
+                    (u.Email != null && u.Email.ToLower() == login));
 
             // 3. Kiểm tra tài khoản tồn tại
             if (user == null)

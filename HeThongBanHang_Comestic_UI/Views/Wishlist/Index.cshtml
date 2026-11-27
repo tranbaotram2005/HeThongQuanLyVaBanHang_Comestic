@@ -1,0 +1,92 @@
+﻿@using System.Globalization
+@model List<HeThongBanHang_Comestic_UI.Models.WishlistItemVM>
+
+@{
+    ViewData["Title"] = "Danh sách yêu thích";
+    CultureInfo culture = new CultureInfo("vi-VN");
+}
+
+<div class="container-fluid pt-5 pb-3">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4">
+        <span class="bg-secondary pr-3">Sản phẩm bạn đã thích ❤️</span>
+    </h2>
+
+    <div class="row px-xl-5">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="col-12 text-center py-5 bg-light rounded">
+                <i class="far fa-heart fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Danh sách yêu thích của bạn đang trống quắc à!</h5>
+                <a href="/Product/Index" class="btn btn-primary mt-3 px-4">Đi shopping ngay thôi bồ ơi</a>
+            </div>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                    <div class="product-item bg-light mb-4 position-relative">
+                        <div class="product-img position-relative overflow-hidden">
+                            <img src="@Url.Content("~/Picture/" + item.Picture)"
+                                 class="img-fluid w-100 product-img-item"
+                                 alt="@item.ProductName">
+
+                            <div class="product-action">
+                                <a class="btn btn-outline-dark btn-square btn-detail"
+                                   href="javascript:void(0)"
+                                   data-id="@item.ProductId">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </a>
+                                <a class="btn btn-outline-danger btn-square wishlist-btn"
+                                   href="javascript:void(0)"
+                                   data-id="@item.ProductId">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-4 px-2">
+                            <a class="h6 text-decoration-none text-truncate d-block mb-2"
+                               href="/Product/Detail/@item.ProductId">
+                                @item.ProductName
+                            </a>
+                            <div class="d-flex align-items-center justify-content-center mt-2">
+                                <h5 class="text-danger fw-bold">
+                                    @item.UnitPrice.ToString("N0", culture) VNĐ
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-item .product-img {
+        width: 100% !important;
+        height: 240px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: #fff !important;
+        overflow: hidden !important;
+        position: relative !important;
+    }
+
+        .product-item .product-img img.product-img-item {
+            max-width: 85% !important;
+            max-height: 85% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+</style>

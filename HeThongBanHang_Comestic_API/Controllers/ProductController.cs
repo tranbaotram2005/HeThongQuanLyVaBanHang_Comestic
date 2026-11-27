@@ -33,6 +33,19 @@ namespace HeThongBanHang_Comestic_API.Controllers
         }
 
         // =====================================
+        // GET: api/Product/admin
+        // Admin & Employee: lấy toàn bộ sản phẩm (kể cả đã ẩn)
+        // =====================================
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> GetAllForAdmin()
+        {
+            var products = await _productService.GetAllForAdminAsync();
+
+            return Ok(products);
+        }
+
+        // =====================================
         // GET: api/Product/5
         // Lấy chi tiết sản phẩm theo ID
         // =====================================

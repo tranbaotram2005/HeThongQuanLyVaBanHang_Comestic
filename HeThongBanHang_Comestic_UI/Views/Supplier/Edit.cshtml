@@ -1,0 +1,68 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.SupplierUpdateDTO
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">Edit Supplier</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" asp-route-id="@ViewBag.SupplierId" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">Mã nhà cung cấp</label>
+                            <input value="@ViewBag.SupplierId" class="form-control" readonly />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Tên công ty / Thương hiệu</label>
+                            <input asp-for="CompanyName" class="form-control" />
+                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Người liên hệ</label>
+                            <input asp-for="ContactName" class="form-control" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Số điện thoại</label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Email</label>
+                            <input asp-for="Email" class="form-control" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Logo thương hiệu</label>
+                            @if (!string.IsNullOrEmpty(Model.Picture))
+                            {
+                                <div class="mb-2">
+                                    <img src="~/Supplier/@Model.Picture" alt="@Model.CompanyName" style="max-height: 70px; object-fit: contain;" class="border p-1 bg-light" />
+                                </div>
+                            }
+                            <input type="file" name="PictureFile" class="form-control-file mb-2" accept="image/*" />
+                            <input asp-for="Picture" class="form-control" placeholder="Tên file trong wwwroot/Supplier" />
+                        </div>
+
+                        <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+                        <div class="text-right mt-4">
+                            <button type="submit" class="btn btn-warning px-4">Update</button>
+                            <a asp-action="Index" class="btn btn-secondary px-3">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

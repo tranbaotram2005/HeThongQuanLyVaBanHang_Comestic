@@ -1,0 +1,42 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.OrderResponseDTO
+
+<div class="container mt-5">
+
+    <h2>Đơn hàng #@Model.Id</h2>
+
+    <p><b>Người nhận:</b> @(Model.ShipInfos.FirstOrDefault() is var s && s != null ? $"{s.ShipName} - {s.ShipPhone} - {s.ShipAddress}" : Model.Receive)</p>
+    <p><b>Ngày đặt:</b> @Model.CreatedAt</p>
+
+    @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Biến thể</th>
+                    <th>SL</th>
+                    <th>Giá</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.VariantInfo</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.LineTotal</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            Không có chi tiết đơn hàng
+        </div>
+    }
+
+</div>

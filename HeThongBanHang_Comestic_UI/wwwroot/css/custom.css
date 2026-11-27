@@ -1,0 +1,118 @@
+﻿
+    
+/*.text-center.py-4 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}*/
+
+/*.header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+}*/
+
+.modal-content {
+    border-radius: 20px !important;
+    border: none !important;
+}
+
+.modal-dialog {
+    max-width: 700px;
+}
+
+.modal-body img {
+    border-radius: 12px;
+}
+.product-item .product-img {
+    height: 250px !important;
+    width: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+
+    .product-item .product-img > a {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100%;
+        height: 100%;
+    }
+
+    .product-item .product-img img {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        max-width: 88% !important;
+        max-height: 88% !important;
+        object-fit: contain !important;
+        transform: none;
+        transition: transform 0.3s ease;
+        display: block;
+    }
+
+.product-item:hover .product-img img {
+    transform: scale(1.06);
+}
+
+/* Ảnh trong popup xem nhanh sản phẩm cũng nằm gọn khung */
+#productImage {
+    max-height: 320px;
+    width: 100%;
+    object-fit: contain;
+}
+.price-filter-item {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+    .price-filter-item:hover {
+        background-color: #f0f0f0 !important;
+        border-color: #d6d6d6;
+        transform: translateX(3px);
+    }
+.price-filter-item {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+    .price-filter-item:hover {
+        background-color: #f0f0f0;
+        border-color: #d6d6d6;
+        transform: translateX(3px);
+    }
+
+.btn-shop-now {
+    background-color: var(--primary); /* Tự động lấy màu #FFD333 */
+    color: var(--dark);
+    font-weight: bold;
+    border: none;
+    padding: 10px 25px;
+}
+
+/* Đảm bảo khung chứa các logo luôn bằng nhau */
+.vendor-carousel .bg-light {
+    height: 120px; /* Cố định chiều cao khung */
+    display: flex;
+    align-items: center; /* Căn giữa dọc */
+    justify-content: center; /* Căn giữa ngang */
+    padding: 15px; /* Khoảng cách logo với mép khung */
+    background: #f8f9fa; /* Màu nền */
+}
+
+    /* Ép ảnh không bị méo và nằm gọn trong khung */
+    .vendor-carousel .bg-light img {
+        max-height: 100%; /* Không cao quá khung */
+        max-width: 100%; /* Không rộng quá khung */
+        object-fit: contain; /* Giữ nguyên tỉ lệ, không bị dẹt/dài */
+        width: auto; /* Tự động điều chỉnh */
+        height: auto; /* Tự động điều chỉnh */
+    }

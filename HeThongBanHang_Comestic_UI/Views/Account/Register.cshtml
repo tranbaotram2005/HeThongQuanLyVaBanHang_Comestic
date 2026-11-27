@@ -1,0 +1,69 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.RegisterDTO
+
+<div class="container d-flex justify-content-center align-items-center w-75" style="min-height:80vh;">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-lg rounded-4">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-1 fw-bold">Create account</h3>
+                <p class="text-center text-muted mb-4">Đăng ký tài khoản mới</p>
+
+                <form asp-action="Register" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label>Họ tên</label>
+                        <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Tên đăng nhập</label>
+                        <input asp-for="UserName" class="form-control" placeholder="Nhập username" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Số điện thoại</label>
+                        <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Mật khẩu</label>
+                            <input asp-for="Password" type="password" class="form-control" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="col-6">
+                            <label>Xác nhận mật khẩu</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div asp-validation-summary="All" class="text-danger mt-2"></div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-3">
+                        Đăng ký
+                    </button>
+                </form>
+
+                <hr class="my-4" />
+                <p class="text-center mb-0">
+                    Đã có tài khoản?
+                    <a asp-action="Login" class="text-primary fw-semibold">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

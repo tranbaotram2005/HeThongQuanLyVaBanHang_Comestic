@@ -1,0 +1,120 @@
+﻿@using System.Globalization
+@model HeThongBanHang_Comestic_UI.Models.ProductDetailVM
+@{
+    CultureInfo culture = new CultureInfo("vi-VN");
+    var defaultVariant = Model.Variants.FirstOrDefault(v => v.IsDefault)
+                         ?? Model.Variants.FirstOrDefault();
+
+    var defaultImage = (defaultVariant != null && !string.IsNullOrEmpty(defaultVariant.ImageUrl))
+        ? Url.Content("~/ProductVariant/" + defaultVariant.ImageUrl)
+        : Url.Content("~/Picture/" + Model.Product.Picture);
+
+    var optionGroups = Model.Variants
+        .SelectMany(v => v.Options)
+        .GroupBy(kv => kv.Key)
+        .ToList();
+}
+<div class="modal-header border-0">
+    <h5 class="modal-title fw-bold">@Model.Product.ProductName</h5>
+    <button type="button" class="close" data-dismiss="modal">
+        <span>&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-5 text-center">
+            <img id="productImage" src="@defaultImage" class="img-fluid rounded" />
+        </div>
+        <div class="col-md-7">
+            <h4 class="text-danger mb-3">
+                <span id="priceDisplay">
+                    @((defaultVariant?.Price ?? Model.Product.UnitPrice ?? 0).ToString("N0", culture))
+                </span> đ
+            </h4>
+            <p>@Model.Product.Description</p>
+
+            @foreach (var group in optionGroups)
+            {
+                <div class="mb-3">
+                    <label class="fw-bold">@group.Key</label>
+                    <div class="d-flex flex-wrap">
+                        @foreach (var val in group.Select(x => x.Value).Distinct())
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-dark option-btn"
+                                    data-option="@val"
+                                    data-group="@group.Key"
+                                    style="margin:5px; border-radius:20px;">
+                                @val
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+            {
+                var refererHeader = Context.Request.Headers["Referer"].ToString();
+                var popupReturnUrl = Uri.TryCreate(refererHeader, UriKind.Absolute, out var refUri)
+                    ? refUri.PathAndQuery
+                    : "/";
+
+                <a asp-controller="Product" asp-action="Edit" asp-route-id="@Model.Product.Id"
+                   class="btn btn-warning px-3 mt-3">
+                    <i class="fa fa-edit"></i> Sửa sản phẩm
+                </a>
+
+                @if (Model.Product.Status == 1)
+                {
+                    <form asp-controller="Product" asp-action="Hide" asp-route-id="@Model.Product.Id"
+                          asp-route-returnUrl="@popupReturnUrl" method="post" class="d-inline"
+                          onsubmit="return confirm('Xác nhận ẩn sản phẩm này?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-secondary px-3 mt-3">
+                            <i class="fa fa-eye-slash"></i> Ẩn
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-controller="Product" asp-action="Show" asp-route-id="@Model.Product.Id"
+                          asp-route-returnUrl="@popupReturnUrl" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-primary px-3 mt-3">
+                            <i class="fa fa-eye"></i> Hiện
+                        </button>
+                    </form>
+                }
+
+                <a asp-controller="Product" asp-action="Delete" asp-route-id="@Model.Product.Id"
+                   class="btn btn-danger px-3 mt-3">
+                    <i class="fa fa-trash"></i> Xóa
+                </a>
+            }
+            else
+            {
+                <a href="javascript:void(0)"
+                   id="addToCartBtn"
+                   data-variant-id="@(defaultVariant?.Id)"
+                   class="btn btn-success px-4 mt-3">
+                    <i class="fa fa-shopping-cart"></i> Add to Cart
+                </a>
+            }
+            <button class="btn btn-secondary px-4 mt-3" data-dismiss="modal">Back</button>
+        </div>
+    </div>
+
+    <script>
+        window.productVariants = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Variants.Select(v => new {
+            id = v.Id,
+            price = v.Price,
+            image = !string.IsNullOrEmpty(v.ImageUrl)
+                ? Url.Content("~/ProductVariant/" + v.ImageUrl)
+                : Url.Content("~/Picture/" + Model.Product.Picture),
+            isDefault = v.IsDefault,
+            options = v.Options
+        })));
+        window.totalGroups = @optionGroups.Count;
+        window.isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+    </script>
+</div>

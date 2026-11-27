@@ -1,0 +1,80 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.LoginDTO
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="col-md-5 col-lg-4">
+
+        <div class="card border-0 shadow-lg rounded-4">
+
+            <!-- Header -->
+            <div class="card-body p-5">
+
+                <h3 class="text-center mb-1 fw-bold">Welcome back</h3>
+                <p class="text-center text-muted mb-4">Đăng nhập vào tài khoản của bạn</p>
+
+                <form asp-action="Login" method="post" asp-route-returnurl="@ViewBag.ReturnUrl">
+
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập hoặc email</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fa fa-user"></i>
+                            </span>
+                            <input asp-for="UserNameOrEmail" class="form-control" placeholder="Nhập username hoặc email"/>
+                        </div>
+                        <span asp-validation-for="UserNameOrEmail" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fa fa-lock"></i>
+                            </span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Remember + Forgot -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember" />
+                            <label class="form-check-label" for="remember">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <a asp-controller="Account"
+                           asp-action="ForgetPassword"
+                           class="text-decoration-none small">
+                            Quên mật khẩu?
+                        </a>
+                    </div>
+
+                    <!-- Button -->
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-3">
+                        Đăng nhập
+                    </button>
+
+                </form>
+
+                <hr class="my-4" />
+
+                <p class="text-center mb-0">
+                    Chưa có tài khoản?
+                    <a asp-action="Register" class="text-primary fw-semibold">Đăng ký</a>
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

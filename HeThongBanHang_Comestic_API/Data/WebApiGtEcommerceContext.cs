@@ -695,6 +695,7 @@ public partial class WebApiGtEcommerceContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SupplierUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("FK_Supplier_Users_Updated");
+            entity.Property(e => e.Picture).HasMaxLength(255);
         });
 
         modelBuilder.Entity<User>(entity =>

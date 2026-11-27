@@ -1,0 +1,121 @@
+﻿@using System.Globalization
+@model IEnumerable<HeThongBanHang_Comestic_UI.Models.ProductVM>
+@{
+    CultureInfo culture = new CultureInfo("vi-VN");
+    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
+    string returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+@if (isStaff)
+{
+    <div class="col-12 mb-3 text-end">
+        <a asp-controller="Product"
+           asp-action="Create"
+           class="btn btn-success">
+            + Create Product
+        </a>
+    </div>
+}
+@foreach (var item in Model)
+{
+    bool isHidden = item.Status == 0;
+    <div class="col-lg-4 col-md-6 col-sm-6 pb-1">
+        <div class="product-item bg-light mb-4"
+             style="@(isHidden ? "opacity: 0.45; filter: grayscale(100%); background-color: #e9ecef !important;" : "")">
+            <div class="product-img position-relative">
+
+                <a asp-action="Detail" asp-controller="Product" asp-route-id="@item.productId">
+                    <img src="@Url.Content("~/Picture/" + item.productImage)"
+                         class="product-img-item"
+                         alt="@item.productName">
+                </a>
+
+                <div class="product-action">
+                    @if (isStaff)
+                    {
+                        <a class="btn btn-outline-dark btn-square"
+                           asp-controller="Product"
+                           asp-action="Edit"
+                           asp-route-id="@item.productId"
+                           title="Sửa sản phẩm">
+                            <i class="fa fa-edit"></i>
+                        </a>
+
+                        @if (!isHidden)
+                        {
+                            <form asp-controller="Product" asp-action="Hide" asp-route-id="@item.productId"
+                                  asp-route-returnUrl="@returnUrl" method="post" class="d-inline"
+                                  onsubmit="return confirm('Xác nhận ẩn sản phẩm này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-dark btn-square" title="Ẩn sản phẩm">
+                                    <i class="fa fa-eye-slash"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Product" asp-action="Show" asp-route-id="@item.productId"
+                                  asp-route-returnUrl="@returnUrl" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-dark btn-square" title="Hiện lại sản phẩm">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </form>
+                        }
+
+                        <a class="btn btn-outline-dark btn-square"
+                           asp-controller="Product"
+                           asp-action="Delete"
+                           asp-route-id="@item.productId"
+                           title="Xóa sản phẩm">
+                            <i class="fa fa-trash"></i>
+                        </a>
+
+                        <a class="btn btn-outline-dark btn-square btn-detail"
+                           href="javascript:void(0)"
+                           data-id="@item.productId"
+                           title="Xem chi tiết">
+                            <i class="fa fa-search"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-dark btn-square btn-detail"
+                           href="javascript:void(0)"
+                           data-id="@item.productId">
+                            <i class="fa fa-shopping-cart"></i>
+                        </a>
+
+                        <a class="btn btn-outline-dark btn-square"
+                           href="#">
+                            <i class="far fa-heart"></i>
+                        </a>
+
+                        <a class="btn btn-outline-dark btn-square btn-detail"
+                           href="javascript:void(0)"
+                           data-id="@item.productId">
+                            <i class="fa fa-search"></i>
+                        </a>
+                    }
+                </div>
+
+            </div>
+            <div class="text-center py-4">
+
+                <a class="h6 text-decoration-none text-truncate d-block px-2"
+                   asp-action="Detail" asp-controller="Product" asp-route-id="@item.productId">
+                    @item.productName
+                    @if (isHidden)
+                    {
+                        <span class="badge badge-secondary ml-1">Đã ẩn</span>
+                    }
+                </a>
+
+                <div class="d-flex align-items-center justify-content-center mt-2">
+                    <h5>@item.productPrice.ToString("N0", culture)</h5>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+

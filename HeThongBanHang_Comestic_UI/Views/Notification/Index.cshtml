@@ -1,0 +1,20 @@
+﻿
+<div class="container mt-5">
+    <h2>Thông báo</h2>
+
+    @foreach (var item in Model)
+    {
+        <a asp-controller="OrderDetail"
+           asp-action="Detail"
+           asp-route-id="@item.OrderId"
+           class="text-decoration-none">
+
+            <div class="alert alert-success">
+                @item.Message
+                <br />
+                <small>@item.CreatedAt</small>
+            </div>
+
+        </a>
+    }
+</div>

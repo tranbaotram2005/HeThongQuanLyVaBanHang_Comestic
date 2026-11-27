@@ -32,6 +32,7 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IShipInfoService, ShipInfoService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 // ??ng ký Password Hasher
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

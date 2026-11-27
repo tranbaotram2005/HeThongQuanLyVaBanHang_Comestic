@@ -1,0 +1,147 @@
+﻿@using System.Globalization
+@model IEnumerable<HeThongBanHang_Comestic_UI.Models.CartItem>
+
+@{
+    CultureInfo culture = new CultureInfo("vi-VN");
+    var subtotal = Model.Sum(x => x.Price * x.Quantity);
+}
+
+<!-- CART -->
+<div class="container-fluid">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mx-xl-5">@TempData["Error"]</div>
+    }
+    <div class="row px-xl-5">
+
+        <div class="col-lg-8 table-responsive mb-5">
+
+            <table class="table table-light table-borderless table-hover text-center mb-0">
+
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Products</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+
+                <tbody class="align-middle">
+
+                    @foreach (var item in Model)
+                    {
+                        <tr id="row-@item.Id">
+
+                            <!-- PRODUCT -->
+                            <td class="align-middle text-start">
+                                <img src="~/ProductVariant/@item.ImageUrl"
+                                     style="width:50px;height:50px;object-fit:contain;" />
+
+                                <div>
+                                    <b>@item.ProductName</b><br />
+                                    <small class="text-muted">@item.VariantText</small>
+                                </div>
+                        </td>
+
+                            <!-- PRICE -->
+                            <td class="align-middle"
+                                id="price-@item.Id"
+                                data-price="@item.Price">
+                                @item.Price.ToString("N0", culture)
+                            </td>
+
+                            <!-- QTY -->
+                            <td class="align-middle">
+                                <div class="input-group quantity mx-auto" style="width:100px;">
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary btn-minus"
+                                            data-id="@item.Id">
+                                        <i class="fa fa-minus"></i>
+                                    </button>
+
+                                    <input id="qty-@item.Id"
+                                           type="text"
+                                           value="@item.Quantity"
+                                           class="form-control form-control-sm bg-secondary border-0 text-center"
+                                           readonly />
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary btn-plus"
+                                            data-id="@item.Id">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+
+                                </div>
+                            </td>
+
+                            <!-- TOTAL -->
+                            <td class="align-middle"
+                                id="total-@item.Id">
+                                @((item.Price * item.Quantity).ToString("N0", culture))
+                            </td>
+
+                            <!-- REMOVE -->
+                            <td class="align-middle">
+                                <a asp-action="RemoveCart"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-danger">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </td>
+
+                        </tr>
+                                        }
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="col-lg-4">
+
+            <h5 class="section-title position-relative text-uppercase mb-3">
+                <span class="bg-secondary pr-3">Cart Summary</span>
+            </h5>
+
+            <div class="bg-light p-30 mb-5">
+
+                <div class="border-bottom pb-2">
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6 id="cart-subtotal">Subtotal</h6>
+                        <h6>@subtotal.ToString("N0", culture)</h6>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <h6>Shipping</h6>
+                        <h6>0</h6>
+                    </div>
+
+                </div>
+
+                <div class="pt-2">
+
+                    <div class="d-flex justify-content-between mt-2">
+                        <h5 id="cart-total">Total</h5>
+                        <h5>@subtotal.ToString("N0", culture)</h5>
+                    </div>
+
+                    <a asp-controller="Cart"
+                       asp-action="Checkout"
+                       class="btn btn-block btn-primary font-weight-bold my-3 py-3">
+                        Proceed To Checkout
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<script src="~/js/js_detailcart.js" asp-append-version="true"></script>

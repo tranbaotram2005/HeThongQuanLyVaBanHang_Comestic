@@ -375,6 +375,7 @@ namespace HeThongBanHang_Comestic_API.Services
                 .Include(o => o.OrderDetails)
                 .Include(o => o.Payments)
                 .Include(o => o.ShipInfos)
+                .Include(o => o.UpdatedByNavigation)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 

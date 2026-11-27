@@ -256,5 +256,21 @@ namespace HeThongBanHang_Comestic_API.Services
 
             return _mapper.Map<List<ProductResponseDTO>>(products);
         }
+
+        // =====================================
+        // ADMIN, EMPLOYEE: LẤY TOÀN BỘ SẢN PHẨM (KỂ CẢ ĐÃ ẨN)
+        // =====================================
+        public async Task<List<ProductResponseDTO>> GetAllForAdminAsync()
+        {
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .OrderByDescending(p => p.Status)
+                .ThenByDescending(p => p.Id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return _mapper.Map<List<ProductResponseDTO>>(products);
+        }
     }
 }

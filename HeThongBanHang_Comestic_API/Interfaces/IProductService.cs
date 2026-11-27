@@ -24,5 +24,8 @@ namespace HeThongBanHang_Comestic_API.Interfaces
 
         // Lọc sản phẩm theo khoảng giá
         Task<List<ProductResponseDTO>> FilterByPriceAsync(decimal? minPrice, decimal? maxPrice);
+
+        // Admin, Employee: lấy toàn bộ sản phẩm (kể cả đã ẩn)
+        Task<List<ProductResponseDTO>> GetAllForAdminAsync();
     }
 }

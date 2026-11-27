@@ -340,7 +340,11 @@ namespace HeThongBanHang_Comestic_API.Profiles
 
             // Order -> OrderResponseDTO
             CreateMap<Order, OrderResponseDTO>()
-                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore());
+                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.ApprovedByName, opt => opt.MapFrom(src =>
+        (src.Status == 1 || src.Status == 2) && src.UpdatedByNavigation != null
+            ? src.UpdatedByNavigation.FullName
+            : null));
 
             // OrderDetail -> OrderDetailResponseDTO
             CreateMap<OrderDetail, OrderDetailResponseDTO>();
@@ -350,6 +354,39 @@ namespace HeThongBanHang_Comestic_API.Profiles
 
             // ShipInfo -> ShipInfoResponseDTO
             CreateMap<ShipInfo, ShipInfoResponseDTO>();
+
+            // =====================================
+            // SUPPLIER
+            // =====================================
+            CreateMap<Supplier, SupplierResponseDTO>();
+
+            CreateMap<SupplierCreateDTO, Supplier>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddressId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.Address, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedByNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedByNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Products, opt => opt.Ignore());
+
+            CreateMap<SupplierUpdateDTO, Supplier>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddressId, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.Address, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedByNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedByNavigation, opt => opt.Ignore())
+                .ForMember(dest => dest.Products, opt => opt.Ignore());
         }
     }
 }

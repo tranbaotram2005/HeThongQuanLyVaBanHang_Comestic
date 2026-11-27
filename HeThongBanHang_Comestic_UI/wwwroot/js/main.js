@@ -1,3 +1,6 @@
+﻿// Khai báo biến toàn cục để lưu trạng thái
+var selectedOptions = {};
+var selectedVariantUid = null;
 (function ($) {
     "use strict";
     
@@ -107,7 +110,11 @@
                 items:4
             }
         }
+
     });
+
+
+
 
 
     // Product Quantity
@@ -125,6 +132,36 @@
         }
         button.parent().parent().find('input').val(newVal);
     });
-    
+
+    function showQuickView(productId) {
+        $.ajax({
+            url: '/Product/DetailPopup',
+            type: 'GET',
+            cache: false,
+            data: { id: productId },
+            success: function (data) {
+                $("#modalContent").html(data);
+                $("#productModal").modal('show');
+
+                // Đọc dữ liệu từ thẻ div vừa load về
+                let variantData = $("#variantData").data("variants");
+
+                // Xử lý chọn mặc định ngay tại đây
+                let defaultVar = variantData.find(v => v.isDefault === true);
+                if (defaultVar) {
+                    Object.entries(defaultVar.options).forEach(([g, o]) => {
+                        $(`.option-btn[data-group="${g}"][data-option="${o}"]`).addClass("active");
+                    });
+
+                    // Cập nhật giá và ảnh ngay lập tức
+                    $("#priceDisplay").text(Number(defaultVar.price).toLocaleString("vi-VN"));
+                    if (defaultVar.image) {
+                        $("#productImage").attr("src", "/ProductVariant/" + defaultVar.image);
+                    }
+                }
+            }
+        });
+    }
+
 })(jQuery);
 

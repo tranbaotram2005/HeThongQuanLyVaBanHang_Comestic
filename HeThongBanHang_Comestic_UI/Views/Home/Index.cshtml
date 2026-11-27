@@ -1,8 +1,453 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+@model HeThongBanHang_Comestic_UI.Models.HomeViewModels
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Carousel Start -->
+<div class="container-fluid mb-3">
+    <div class="row px-xl-5">
+        <div class="col-lg-8">
+            <div id="header-carousel" class="carousel slide carousel-fade mb-30 mb-lg-0" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    <li data-target="#header-carousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#header-carousel" data-slide-to="1"></li>
+                    <li data-target="#header-carousel" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="carousel-item position-relative active" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="home/skincare.jpg" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Skincare</h1>
+                                <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Khám phá các dòng sản phẩm dưỡng da được tinh lọc từ thiên nhiên và kiểm chứng bởi khoa học. Chúng tôi không chỉ làm đẹp, chúng tôi nuôi dưỡng làn da khỏe mạnh từ sâu bên trong.</p>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="#">Mua ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="Home/body_care.webp" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Body Care</h1>
+                                <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Dành tặng cơ thể bạn sự chăm sóc dịu dàng nhất. Từ những sản phẩm làm sạch đến kem dưỡng ẩm, mỗi giây phút đều là một liệu trình spa tại gia</p>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="#">Mua ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item position-relative" style="height: 430px;">
+                        <img class="position-absolute w-100 h-100" src="Home/chongnnag.webp" style="object-fit: cover;">
+                        <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                            <div class="p-3" style="max-width: 700px;">
+                                <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Sun Protection</h1>
+                                <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Bảo vệ làn da của bạn trước tác hại của ánh nắng mặt trời mà không gây bí bách. Sự bảo vệ hoàn hảo cho một ngày dài năng động</p>
+                                <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="#">Mua ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="product-offer mb-30" style="height: 200px;">
+                <img class="img-fluid" src="Home/larochpossay.png" alt="">
+                <div class="offer-text">
+                    <h6 class="text-white text-uppercase">Giảm 20%</h6>
+                    <h3 class="text-white mb-3">Đơn đầu tiên</h3>
+                    <a href="" class="btn btn-primary">Mua ngay</a>
+                </div>
+            </div>
+            <div class="product-offer mb-30" style="height: 200px;">
+                <img class="img-fluid" src="Home/bo-my-pham-duong-da-di-du-lich.jpg" alt="">
+                <div class="offer-text">
+                    <h6 class="text-white text-uppercase">Giảm 20%</h6>
+                    <h3 class="text-white mb-3">FlashSale 6/6</h3>
+                    <a href="" class="btn btn-primary">Mua ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- Carousel End -->
+<!-- Featured Start -->
+<div class="container-fluid pt-5">
+    <div class="row px-xl-5 pb-3">
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-check text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">Chất lượng</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-shipping-fast text-primary m-0 mr-2"></h1>
+                <h5 class="font-weight-semi-bold m-0">Miễn vận chuyển</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fas fa-exchange-alt text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">14 ngày đổi trả</h5>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+            <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                <h1 class="fa fa-phone-volume text-primary m-0 mr-3"></h1>
+                <h5 class="font-weight-semi-bold m-0">Hỗ trợ 24/7</h5>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Featured End -->
+<!-- Categories Start -->
+@{
+    bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
+}
+<div class="container-fluid pt-5">
+    <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4 d-flex justify-content-between align-items-center">
+        <span class="bg-secondary pr-3">Categories</span>
+        @if (isStaff)
+        {
+            <a asp-controller="Category" asp-action="Create" class="btn btn-sm btn-success" title="Thêm danh mục">
+                <i class="fa fa-plus"></i> Thêm danh mục
+            </a>
+        }
+    </h2>
+    <div class="row px-xl-5 pb-3">
+        @foreach (var category in Model.Categories)
+        {
+            bool isHidden = category.Status == 0;
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                <div class="cat-item d-flex align-items-center mb-4 position-relative"
+                     style="@(isHidden ? "opacity: 0.45; filter: grayscale(100%); background-color: #e9ecef;" : "")">
+
+                    <a class="text-decoration-none d-flex align-items-center flex-fill"
+                       href="@Url.Action("Index", "Product", new { loai = category.Id })">
+                        <div class="overflow-hidden" style="width: 100px; height: 100px;">
+                            <img class="img-fluid" src="~/Category/@category.Picture" alt="@category.CategoryName">
+                        </div>
+                        <div class="flex-fill pl-3">
+                            <h6>
+                                @category.CategoryName
+                                @if (isHidden)
+                                {
+                                    <span class="badge badge-secondary ml-1">Đã ẩn</span>
+                                }
+                            </h6>
+                            <small class="text-body">@category.ProductCount Products</small>
+                        </div>
+                    </a>
+
+                    @if (isStaff)
+                    {
+                        <div class="position-absolute" style="top: 6px; right: 8px; z-index: 5;">
+                            <a asp-controller="Category" asp-action="Create"
+                               class="btn btn-xs btn-outline-success p-1" title="Thêm mới">
+                                <i class="fa fa-plus"></i>
+                            </a>
+                            <a asp-controller="Category" asp-action="Edit" asp-route-id="@category.Id"
+                               class="btn btn-xs btn-outline-warning p-1" title="Sửa">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                            @if (!isHidden)
+                            {
+                                <form asp-controller="Category" asp-action="Hide" asp-route-id="@category.Id"
+                                      asp-route-returnUrl="/" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xác nhận ẩn danh mục này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Ẩn danh mục">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="Category" asp-action="Show" asp-route-id="@category.Id"
+                                      asp-route-returnUrl="/" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-xs btn-outline-primary p-1" title="Hiện lại danh mục">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<!-- Categories End -->
+
+    <!-- Products Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Featured Products</span></h2>
+        <div class="row px-xl-5">
+        @foreach (var item in Model.Products)
+        {
+            bool isProdHidden = item.Status == 0;
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                <div class="product-item bg-light mb-4"
+                     style="@(isProdHidden ? "opacity: 0.45; filter: grayscale(100%); background-color: #e9ecef !important;" : "")">
+                    <div class="product-img position-relative overflow-hidden">
+                        <img class="img-fluid w-100" src="~/Picture/@item.Picture" alt="@item.ProductName">
+                        <div class="product-action">
+                            @if (isStaff)
+                            {
+                                <a class="btn btn-outline-dark btn-square"
+                                   asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id"
+                                   title="Sửa sản phẩm">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                @if (!isProdHidden)
+                                {
+                                    <form asp-controller="Product" asp-action="Hide" asp-route-id="@item.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận ẩn sản phẩm này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-dark btn-square" title="Ẩn sản phẩm">
+                                            <i class="fa fa-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Product" asp-action="Show" asp-route-id="@item.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-dark btn-square" title="Hiện lại sản phẩm">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <a class="btn btn-outline-dark btn-square"
+                                   asp-controller="Product" asp-action="Delete" asp-route-id="@item.Id"
+                                   title="Xóa sản phẩm">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                                <a class="btn btn-outline-dark btn-square btn-detail"
+                                   href="javascript:void(0)" data-id="@item.Id" title="Xem chi tiết">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-outline-dark btn-square btn-detail"
+                                   href="javascript:void(0)"
+                                   data-id="@item.Id">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </a>
+                                <a class="btn btn-outline-dark btn-square" href=""><i class="far fa-heart"></i></a>
+                                <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-sync-alt"></i></a>
+                                <a class="btn btn-outline-dark btn-square btn-detail" href="javascript:void(0)" data-id="@item.Id">
+                                    <i class="fa fa-search"></i></a>
+                            }
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none text-truncate d-block px-2" href="javascript:void(0)">
+                            @item.ProductName
+                            @if (isProdHidden)
+                            {
+                                <span class="badge badge-secondary ml-1">Đã ẩn</span>
+                            }
+                        </a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5>@item.UnitPrice</h5><h6 class="text-muted ml-2"><del>@item.UnitPrice</del></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+          
+        </div>
+    </div>
+    <!-- Products End -->
+
+    <!-- Offer Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <div class="row px-xl-5">
+            <div class="col-md-6">
+                <div class="product-offer mb-30" style="height: 300px;">
+                    <img class="img-fluid" src="Home/daDep.jpg" alt="">
+                    <div class="offer-text">
+                    <h6 class="text-white text-uppercase">Vì làn da tỏa sáng</h6>
+                        <h3 class="text-white mb-3">Skincare</h3>
+                        <a href="" class="btn btn-primary">Mua ngay</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="product-offer mb-30" style="height: 300px;">
+                    <img class="img-fluid" src="Home/TrangDiem.webp" alt="">
+                    <div class="offer-text">
+                    <h6 class="text-white text-uppercase">Khơi nguồn vẻ đẹp</h6>
+                        <h3 class="text-white mb-3">Makeup</h3>
+                        <a href="" class="btn btn-primary">Mua ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Offer End -->
+
+    <!-- Products Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Recent Products</span></h2>
+        <div class="row px-xl-5">
+        @foreach (var item in Model.Products)
+        {
+            bool isProdHidden = item.Status == 0;
+            <div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+                <div class="product-item bg-light mb-4"
+                     style="@(isProdHidden ? "opacity: 0.45; filter: grayscale(100%); background-color: #e9ecef !important;" : "")">
+                    <div class="product-img position-relative overflow-hidden">
+                        <img class="img-fluid w-100" src="~/Picture/@item.Picture" alt="@item.ProductName">
+                        <div class="product-action">
+                            @if (isStaff)
+                            {
+                                <a class="btn btn-outline-dark btn-square"
+                                   asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id"
+                                   title="Sửa sản phẩm">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                @if (!isProdHidden)
+                                {
+                                    <form asp-controller="Product" asp-action="Hide" asp-route-id="@item.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận ẩn sản phẩm này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-dark btn-square" title="Ẩn sản phẩm">
+                                            <i class="fa fa-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Product" asp-action="Show" asp-route-id="@item.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-dark btn-square" title="Hiện lại sản phẩm">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <a class="btn btn-outline-dark btn-square"
+                                   asp-controller="Product" asp-action="Delete" asp-route-id="@item.Id"
+                                   title="Xóa sản phẩm">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                                <a class="btn btn-outline-dark btn-square btn-detail"
+                                   href="javascript:void(0)" data-id="@item.Id" title="Xem chi tiết">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-outline-dark btn-square btn-detail"
+                                   href="javascript:void(0)"
+                                   data-id="@item.Id">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </a>
+                                <a class="btn btn-outline-dark btn-square" href=""><i class="far fa-heart"></i></a>
+                                <a class="btn btn-outline-dark btn-square" href=""><i class="fa fa-sync-alt"></i></a>
+                                <a class="btn btn-outline-dark btn-square btn-detail" href="javascript:void(0)" data-id="@item.Id"><i class="fa fa-search"></i></a>
+                            }
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <a class="h6 text-decoration-none text-truncate d-block px-2" href="javascript:void(0)">
+                            @item.ProductName
+                            @if (isProdHidden)
+                            {
+                                <span class="badge badge-secondary ml-1">Đã ẩn</span>
+                            }
+                        </a>
+                        <div class="d-flex align-items-center justify-content-center mt-2">
+                            <h5>@item.UnitPrice</h5><h6 class="text-muted ml-2"><del>@item.UnitPrice</del></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+    </div>
+    <!-- Products End -->
+<!-- Vendor Start -->
+<div class="container-fluid py-5">
+    @if (isStaff)
+    {
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4 d-flex justify-content-between align-items-center">
+            <span class="bg-secondary pr-3">Thương hiệu</span>
+            <a asp-controller="Supplier" asp-action="Create" class="btn btn-sm btn-success" title="Thêm thương hiệu">
+                <i class="fa fa-plus"></i> Thêm thương hiệu
+            </a>
+        </h2>
+    }
+    <div class="row px-xl-5">
+        <div class="col">
+            <div class="owl-carousel vendor-carousel">
+                @foreach (var supplier in Model.Suppliers)
+                {
+                    bool isSupplierHidden = supplier.Status == 0;
+                    <div class="bg-light p-4 position-relative d-flex align-items-center justify-content-center"
+                         style="height: 120px; @(isSupplierHidden ? "opacity: 0.45; filter: grayscale(100%); background-color: #e9ecef !important;" : "")">
+
+                        <a href="@Url.Action("Index", "Product", new { supplierId = supplier.Id })"
+                           class="text-decoration-none d-flex flex-column align-items-center justify-content-center w-100 h-100"
+                           title="@supplier.CompanyName">
+                            @if (!string.IsNullOrEmpty(supplier.Picture))
+                            {
+                                <img src="~/Supplier/@supplier.Picture" alt="@supplier.CompanyName"
+                                     style="max-height: 75px; max-width: 100%; width: auto; object-fit: contain;" />
+                            }
+                            else
+                            {
+                                <span class="font-weight-bold text-dark text-center">@supplier.CompanyName</span>
+                            }
+                            @if (isSupplierHidden)
+                            {
+                                <span class="badge badge-secondary mt-1">Đã ẩn</span>
+                            }
+                        </a>
+
+                        @if (isStaff)
+                        {
+                            <div class="position-absolute" style="top: 6px; right: 8px; z-index: 5;">
+                                <a asp-controller="Supplier" asp-action="Create"
+                                   class="btn btn-xs btn-outline-success p-1" title="Thêm mới">
+                                    <i class="fa fa-plus"></i>
+                                </a>
+                                <a asp-controller="Supplier" asp-action="Edit" asp-route-id="@supplier.Id"
+                                   class="btn btn-xs btn-outline-warning p-1" title="Sửa">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                @if (!isSupplierHidden)
+                                {
+                                    <form asp-controller="Supplier" asp-action="Hide" asp-route-id="@supplier.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận ẩn thương hiệu này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Ẩn thương hiệu">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Supplier" asp-action="Show" asp-route-id="@supplier.Id"
+                                          asp-route-returnUrl="/" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-xs btn-outline-primary p-1" title="Hiện lại thương hiệu">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Vendor End -->

@@ -1,0 +1,35 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.OrderResponseDTO
+@{
+    var qrUrl = $"https://img.vietqr.io/image/MB-{Model.BankAccount}-compact2.png?amount={(long)Model.TotalAmount}&addInfo={Uri.EscapeDataString(Model.TransferContent ?? $"THANHTOAN {Model.Id}")}";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow-sm mx-auto p-4" style="max-width: 500px;">
+        <h3 class="text-primary mb-3">Quét mã QR để thanh toán</h3>
+        <img src="@qrUrl" alt="QR Chuyển khoản" class="img-fluid mx-auto mb-3" style="max-width: 300px;" />
+        <p><b>Ngân hàng:</b> @Model.BankName</p>
+        <p><b>Số tài khoản:</b> @Model.BankAccount</p>
+        <p><b>Số tiền:</b> <span class="text-danger fw-bold">@Model.TotalAmount.ToString("N0") VNĐ</span></p>
+        <p><b>Nội dung chuyển khoản:</b> <span class="badge badge-warning p-2">@Model.TransferContent</span></p>
+
+        <div id="payment-status" class="alert alert-info mt-3">
+            Đang chờ xác nhận chuyển khoản từ hệ thống...
+        </div>
+
+        <a asp-controller="OrderDetail" asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-outline-secondary mt-2">
+            Xem chi tiết đơn hàng
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        setInterval(function () {
+            $.get('/Payment/CheckStatus?orderId=@Model.Id', function (res) {
+                if (res.isPaid) {
+                    window.location.href = '/Payment/Success?orderId=@Model.Id';
+                }
+            });
+        }, 5000);
+    </script>
+}

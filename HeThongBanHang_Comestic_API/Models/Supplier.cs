@@ -33,7 +33,9 @@ public partial class Supplier
 
     public string? Notes { get; set; }
 
-    public int Status { get; set; }
+    public int Status { get; set; } 
+
+    public string? Picture { get; set; }
 
     public virtual Address? Address { get; set; }
 

@@ -107,5 +107,13 @@ namespace HeThongBanHang_Comestic_API.Controllers
                 ? "Hiển thị danh mục thành công."
                 : "Ẩn danh mục thành công.");
         }
+
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> GetAllForAdmin()
+        {
+            var categories = await _categoryService.GetAllForAdminAsync();
+            return Ok(categories);
+        }
     }
 }

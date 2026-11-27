@@ -15,5 +15,6 @@ namespace HeThongBanHang_Comestic_API.Interfaces
 
         // Admin, Staff: ẩn hoặc hiện danh mục
         Task<bool> UpdateStatusAsync(int id, int status, int userId);
+        Task<List<CategoryResponseDTO>> GetAllForAdminAsync();
     }
 }

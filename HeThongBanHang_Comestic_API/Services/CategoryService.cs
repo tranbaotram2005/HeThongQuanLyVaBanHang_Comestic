@@ -104,5 +104,16 @@ namespace HeThongBanHang_Comestic_API.Services
 
             return true;
         }
+
+        public async Task<List<CategoryResponseDTO>> GetAllForAdminAsync()
+        {
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .OrderByDescending(c => c.Status)
+                .ThenBy(c => c.CategoryName)
+                .ToListAsync();
+
+            return _mapper.Map<List<CategoryResponseDTO>>(categories);
+        }
     }
 }

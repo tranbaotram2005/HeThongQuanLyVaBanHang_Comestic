@@ -1,0 +1,32 @@
+﻿@model IEnumerable<HeThongBanHang_Comestic_UI.Models.MenuCategory>
+
+<h5 class="section-title position-relative text-uppercase mb-3">
+    <span class="bg-secondary pr-3">Filter by category</span>
+</h5>
+
+<div class="bg-light p-4 mb-30">
+
+    <!-- ALL -->
+    <a asp-controller="Product"
+       asp-action="Index"
+       class="d-flex align-items-center justify-content-between mb-3 text-dark category-item">
+        <span>All Category</span>
+    </a>
+
+    @foreach (var item in Model)
+    {
+        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3 price-filter-item">
+            <a asp-controller="Product"
+               asp-action="Index"
+               asp-route-loai="@item.categoryId"
+               asp-route-minPrice="@Context.Request.Query["minPrice"]"
+               asp-route-maxPrice="@Context.Request.Query["maxPrice"]"
+               class="text-dark flex-grow-1 category-filter-item">
+                @item.categoryName
+            </a>
+
+            <span class="badge border font-weight-normal">@item.soLuong</span>
+        </div>
+    }
+
+</div>

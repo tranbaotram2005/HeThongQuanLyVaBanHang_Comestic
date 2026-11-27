@@ -1,0 +1,121 @@
+﻿@model IEnumerable<HeThongBanHang_Comestic_UI.Models.ProductVM>
+
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int pageNumber = ViewBag.TotalPage ?? 0;
+}
+<!-- Breadcrumb Start -->
+<div class="container-fluid">
+    <div class="row px-xl-5">
+        <div class="col-12">
+            <nav class="breadcrumb bg-light mb-30">
+                <a class="breadcrumb-item text-dark" href="#">Home</a>
+                <a class="breadcrumb-item text-dark" href="#">Shop</a>
+                <span class="breadcrumb-item active">Shop List</span>
+            </nav>
+        </div>
+    </div>
+</div>
+<!-- Breadcrumb End -->
+<!-- Shop Start -->
+<div class="container-fluid">
+    <div class="row px-xl-5">
+        <!-- Shop Sidebar Start -->
+        <div class="col-lg-3 col-md-4">
+            <!-- Filter by Category Start -->
+            @await Component.InvokeAsync("MenuCategory")
+            <!-- Filter by Category End -->
+            @await Component.InvokeAsync("MenuPrice")
+        </div>
+        <!-- Shop Sidebar End -->
+        <!-- Shop Product Start -->
+        <div class="col-lg-9 col-md-8">
+            <div class="row pb-3">
+                <div class="col-12 pb-1">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <button class="btn btn-sm btn-light"><i class="fa fa-th-large"></i></button>
+                            <button class="btn btn-sm btn-light ml-2"><i class="fa fa-bars"></i></button>
+                        </div>
+                        <div class="ml-2">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Sorting</button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="#">Latest</a>
+                                    <a class="dropdown-item" href="#">Popularity</a>
+                                    <a class="dropdown-item" href="#">Best Rating</a>
+                                </div>
+                            </div>
+                            <div class="btn-group ml-2">
+                                <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Showing</button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="#">10</a>
+                                    <a class="dropdown-item" href="#">20</a>
+                                    <a class="dropdown-item" href="#">30</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+       
+                @await Html.PartialAsync("ProductItem", Model)
+
+                 
+                <div class="col-12">
+                    <div class="pagination d-flex justify-content-center mt-5">
+                        
+                        <!-- Prev -->
+                        <a asp-action="Index"
+                           asp-route-query="@ViewBag.Query"
+                           asp-route-loai="@ViewBag.CurrentLoai"
+                           asp-route-minPrice="@ViewBag.MinPrice"
+                           asp-route-maxPrice="@ViewBag.MaxPrice"
+                           asp-route-promo="@ViewBag.Promo"
+                           asp-route-page="@(ViewBag.CurrentPage - 1)"
+                           class="rounded @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            &laquo;
+                        </a>
+
+                        <!-- Pages -->
+                        @for (int i = 1; i <= ViewBag.TotalPage; i++)
+                        {
+                            <a class="nav-link @(i == ViewBag.CurrentPage ? "active font-weight-bold" : "")"
+                               asp-action="Index"
+                               asp-route-query="@ViewBag.Query"
+                               asp-route-loai="@ViewBag.CurrentLoai"
+                               asp-route-minPrice="@ViewBag.MinPrice"
+                               asp-route-maxPrice="@ViewBag.MaxPrice"
+                               asp-route-promo="@ViewBag.Promo"
+                               asp-route-record="@ViewBag.Record"
+                               asp-route-page="@i">
+                                @i
+                            </a>
+                        }
+
+
+                        <!-- Next -->
+                        <a asp-action="Index"
+                           asp-route-query="@ViewBag.Query"
+                           asp-route-loai="@ViewBag.CurrentLoai"
+                           asp-route-minPrice="@ViewBag.MinPrice"
+                           asp-route-maxPrice="@ViewBag.MaxPrice"
+                           asp-route-promo="@ViewBag.Promo"
+                           asp-route-page="@(ViewBag.CurrentPage + 1)"
+                           class="rounded @(ViewBag.CurrentPage == ViewBag.TotalPage ? "disabled" : "")">
+                            &raquo;
+                        </a>
+
+                    </div>
+                </div>
+
+              
+
+
+            </div>
+        </div>
+        <!-- Shop Product End -->
+    </div>
+</div>
+<!-- Shop End -->

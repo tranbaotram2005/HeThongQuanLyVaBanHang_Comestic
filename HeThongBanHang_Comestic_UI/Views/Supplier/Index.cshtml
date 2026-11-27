@@ -1,0 +1,61 @@
+﻿@model List<HeThongBanHang_Comestic_UI.DTOs.SupplierResponseDTO>
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tbody tr:hover {
+        background-color: #cce5ff !important;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Quản lý nhà cung cấp</h3>
+        <a asp-action="Create" class="btn btn-success">+ Thêm nhà cung cấp</a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th>Mã NCC</th>
+                <th>Tên công ty</th>
+                <th>Người liên hệ</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th style="width: 160px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.Id</td>
+                    <td>@s.CompanyName</td>
+                    <td>@s.ContactName</td>
+                    <td>@s.Phone</td>
+                    <td>@s.Email</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-warning btn-sm">Sửa</a>
+                        <form asp-action="Hide" asp-route-id="@s.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Xác nhận ẩn nhà cung cấp này?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-sm">Ẩn</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

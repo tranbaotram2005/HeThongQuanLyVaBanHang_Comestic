@@ -1,0 +1,8 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.OrderResponseDTO
+<div class="container text-center mt-5">
+    <h2 class="text-success">Thanh toán thành công!</h2>
+    <p>Mã đơn hàng: @Model.Id</p>
+    <p>Số tiền: @Model.TotalAmount.ToString("N0") VNĐ</p>    
+    <p>Nội dung: @Model.TransferContent</p>
+    <a href="/" class="btn btn-primary">Quay về trang chủ</a>
+</div>

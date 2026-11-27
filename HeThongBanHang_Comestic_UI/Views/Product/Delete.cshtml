@@ -1,0 +1,75 @@
+﻿@model HeThongBanHang_Comestic_UI.DTOs.ProductResponseDTO
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+
+        <div class="col-md-8">
+
+            <div class="card shadow-sm border-0 rounded">
+
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Delete Product</h4>
+                </div>
+
+                <div class="card-body">
+
+                    <h5 class="text-danger mb-3">
+                        Bạn có chắc muốn xoá sản phẩm này không?
+                    </h5>
+
+                    <!-- Product Name -->
+                    <div class="form-group">
+                        <label>Tên sản phẩm</label>
+                        <input value="@Model.ProductName" class="form-control" disabled />
+                    </div>
+
+                    <!-- Price -->
+                    <div class="form-group">
+                        <label>Giá</label>
+                        <input value="@Model.UnitPrice" class="form-control" disabled />
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label>Danh mục</label>
+                        <input value="@Model.CategoryId" class="form-control" disabled />
+                    </div>
+
+                    <!-- Image -->
+                    <div class="form-group">
+                        <label>Ảnh sản phẩm</label>
+                        <br />
+                        <img src="~/Picture/@Model.Picture"
+                             style="width:120px;height:120px;object-fit:cover;"
+                             class="border rounded" />
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea class="form-control" rows="4" disabled>@Model.Description</textarea>
+                    </div>
+
+                    <!-- Buttons -->
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="text-right">
+                            <a asp-action="Index" class="btn btn-secondary px-4">
+                                Huỷ
+                            </a>
+
+                            <button type="submit" class="btn btn-danger px-4">
+                                Xoá
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
