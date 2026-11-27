@@ -1,32 +1,138 @@
 ﻿@model HeThongBanHang_Comestic_UI.DTOs.OrderResponseDTO
+@{
+    var ship = Model.ShipInfos.FirstOrDefault();
+    var pay = Model.Payments.FirstOrDefault();
+    bool isCustomer = !User.IsInRole("Admin") && !User.IsInRole("Employee");
+    bool isPendingBankTransfer = Model.Status == 0
+        && pay != null
+        && pay.Method == "Chuyển khoản"
+        && pay.Status == 0;
+}
 
-<div class="container mt-5">
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Chi tiết đơn hàng #@Model.Id</h2>
+        <a asp-controller="OrderDetail" asp-action="MyOrders" class="btn btn-secondary btn-sm">
+            <i class="fa fa-arrow-left"></i> Quay lại lịch sử đơn
+        </a>
+    </div>
 
-    <h2>Đơn hàng #@Model.Id</h2>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
-    <p><b>Người nhận:</b> @(Model.ShipInfos.FirstOrDefault() is var s && s != null ? $"{s.ShipName} - {s.ShipPhone} - {s.ShipAddress}" : Model.Receive)</p>
-    <p><b>Ngày đặt:</b> @Model.CreatedAt</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    @if (!string.IsNullOrEmpty(Model.CustomerName))
+                    {
+                        <p><b>Khách hàng:</b> @Model.CustomerName</p>
+                    }
+                    <p><b>Người nhận:</b> @(ship != null ? $"{ship.ShipName} - {ship.ShipPhone} - {ship.ShipAddress}" : Model.Receive)</p>
+                    <p><b>Hình thức:</b> @(Model.Receive ?? "Giao tận nơi")</p>
+                    @if (!string.IsNullOrEmpty(Model.EmployeeName))
+                    {
+                        <p><b>Nhân viên đặt dùm:</b> <span class="badge badge-info">@Model.EmployeeName</span></p>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <p><b>Ngày đặt:</b> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p>
+                        <b>Trạng thái đơn:</b>
+                        @switch (Model.Status)
+                        {
+                            case 0:<span class="badge badge-warning text-dark">Chờ xử lý</span>break;
+                            case 1:<span class="badge badge-info">Đã duyệt / Đang giao</span>break;
+                            case 2:<span class="badge badge-success">Hoàn thành</span>break;
+                            default:<span class="badge badge-danger">Đã hủy</span>break;
+                        }
+                    </p>
+                    <p>
+                        <b>Thanh toán:</b> @(pay?.Method ?? "---")
+                        @if (pay?.Status == 1)
+                        {
+                            <span class="badge badge-success ml-1">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-warning text-dark ml-1">Chưa thanh toán</span>
+                        }
+                    </p>
+                    <p><b>Tổng tiền:</b> <span class="text-danger font-weight-bold">@Model.TotalAmount.ToString("N0") đ</span></p>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                {
+                    if (Model.Status == 0)
+                    {
+                        <a asp-controller="Employee" asp-action="ApproveOrder"
+                           asp-route-id="@Model.Id" asp-route-status="1"
+                           asp-route-returnUrl="@($"/OrderDetail/Detail/{Model.Id}")"
+                           class="btn btn-primary btn-sm mr-2">
+                            <i class="fa fa-check"></i> Duyệt đơn
+                        </a>
+                    }
+                    else if (Model.Status == 1)
+                    {
+                        <a asp-controller="Employee" asp-action="ApproveOrder"
+                           asp-route-id="@Model.Id" asp-route-status="2"
+                           asp-route-returnUrl="@($"/OrderDetail/Detail/{Model.Id}")"
+                           class="btn btn-success btn-sm mr-2">
+                            <i class="fa fa-check-double"></i> Hoàn thành
+                        </a>
+                    }
+                }
+                @if (isCustomer && isPendingBankTransfer)
+                {
+                    <a asp-controller="Payment" asp-action="QrPayment" asp-route-orderId="@Model.Id"
+                       class="btn btn-warning btn-sm mr-2">
+                        <i class="fa fa-qrcode"></i> Thanh toán bằng mã QR
+                    </a>
+                }
+                @if (isCustomer && Model.Status == 0)
+                {
+                    <form asp-controller="OrderDetail" asp-action="Cancel" asp-route-id="@Model.Id"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng #@Model.Id?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="fa fa-times"></i> Hủy đơn hàng
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
 
     @if (Model.OrderDetails != null && Model.OrderDetails.Any())
     {
-        <table class="table table-bordered">
-            <thead>
+        <table class="table table-bordered bg-white">
+            <thead class="thead-dark">
                 <tr>
                     <th>Sản phẩm</th>
                     <th>Biến thể</th>
+                    <th>Đơn giá</th>
                     <th>SL</th>
-                    <th>Giá</th>
+                    <th>Thành tiền</th>
                 </tr>
             </thead>
-
             <tbody>
                 @foreach (var item in Model.OrderDetails)
                 {
                     <tr>
                         <td>@item.ProductName</td>
                         <td>@item.VariantInfo</td>
+                        <td>@item.UnitPrice.ToString("N0") đ</td>
                         <td>@item.Quantity</td>
-                        <td>@item.LineTotal</td>
+                        <td class="font-weight-bold">@((item.LineTotal ?? (item.UnitPrice * item.Quantity)).ToString("N0")) đ</td>
                     </tr>
                 }
             </tbody>
@@ -39,4 +145,95 @@
         </div>
     }
 
+    @{
+        var myPayments = ViewBag.MyPayments as List<HeThongBanHang_Comestic_UI.DTOs.PaymentResponseDTO>
+                         ?? Model.Payments
+                         ?? new List<HeThongBanHang_Comestic_UI.DTOs.PaymentResponseDTO>();
+        var myShips = ViewBag.MyShipInfos as List<HeThongBanHang_Comestic_UI.DTOs.ShipInfoResponseDTO>
+                      ?? Model.ShipInfos
+                      ?? new List<HeThongBanHang_Comestic_UI.DTOs.ShipInfoResponseDTO>();
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold">
+                    <i class="fa fa-credit-card text-primary mr-1"></i> Lịch sử thanh toán của đơn #@Model.Id
+                </div>
+                <div class="card-body">
+                    @if (!myPayments.Any())
+                    {
+                        <span class="text-muted small">Chưa có giao dịch thanh toán.</span>
+                    }
+                    else
+                    {
+                        foreach (var p in myPayments)
+                        {
+                            <div class="border rounded p-2 mb-2 bg-light small">
+                                <div class="d-flex justify-content-between">
+                                    <b>Mã GD #@p.Id (@(p.Method ?? "---"))</b>
+                                    @switch (p.Status)
+                                    {
+                                        case 1:<span class="badge badge-success">Đã thanh toán</span>break;
+                                        case 2:<span class="badge badge-danger">Thất bại</span>break;
+                                        case 3:<span class="badge badge-secondary">Đã hoàn tiền</span>break;
+                                        default:<span class="badge badge-warning text-dark">Chưa thanh toán</span>break;
+                                    }
+                                </div>
+                                <div>Số tiền: <b class="text-danger">@p.Amount.ToString("N0") đ</b></div>
+                                <div>Thời gian: @p.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                @if (!string.IsNullOrWhiteSpace(p.Notes))
+                                {
+                                    <div class="text-muted">Ghi chú: @p.Notes</div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold">
+                    <i class="fa fa-truck text-info mr-1"></i> Thông tin vận chuyển
+                </div>
+                <div class="card-body">
+                    @if (!myShips.Any())
+                    {
+                        <span class="text-muted small">Chưa có thông tin vận chuyển.</span>
+                    }
+                    else
+                    {
+                        foreach (var s in myShips)
+                        {
+                            <div class="border rounded p-2 mb-2 bg-light small">
+                                <div class="d-flex justify-content-between">
+                                    <b>Vận đơn #@s.Id</b>
+                                    @switch (s.Status)
+                                    {
+                                        case 0:<span class="badge badge-secondary">Chờ xử lý</span>break;
+                                        case 1:<span class="badge badge-warning text-dark">Chờ lấy hàng</span>break;
+                                        case 2:<span class="badge badge-info">Đang vận chuyển</span>break;
+                                        case 3:<span class="badge badge-success">Đã giao thành công</span>break;
+                                        case 4:<span class="badge badge-danger">Đã hủy</span>break;
+                                    }
+                                </div>
+                                <div>Người nhận: @s.ShipName - @s.ShipPhone</div>
+                                <div>Địa chỉ: @s.ShipAddress @(!string.IsNullOrEmpty(s.ShipCity) ? $", {s.ShipCity}" : "")</div>
+                                @if (s.ShippedDate.HasValue)
+                                {
+                                    <div>Ngày gửi: @s.ShippedDate.Value.ToString("dd/MM/yyyy")</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(s.Notes))
+                                {
+                                    <div class="text-muted">Ghi chú: @s.Notes</div>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,10 +1,12 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using HeThongBanHang_Comestic_API.Data;
 using HeThongBanHang_Comestic_API.DTOs;
 using HeThongBanHang_Comestic_API.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using HeThongBanHang_Comestic_API.Interfaces;
@@ -16,15 +18,21 @@ namespace HeThongBanHang_Comestic_API.Services
         private readonly WebApiGtEcommerceContext _context;
         private readonly IConfiguration _configuration;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IMemoryCache _cache;
+        private readonly IEmailService _emailService;
 
         public AccountService(
             WebApiGtEcommerceContext context,
             IConfiguration configuration,
-            IPasswordHasher<User> passwordHasher)
+            IPasswordHasher<User> passwordHasher,
+            IMemoryCache cache,
+            IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _passwordHasher = passwordHasher;
+            _cache = cache;
+            _emailService = emailService;
         }
 
         public async Task<LoginResponseDTO?> LoginAsync(LoginDTO model)
@@ -156,43 +164,162 @@ namespace HeThongBanHang_Comestic_API.Services
 
         public async Task<bool> RegisterAsync(RegisterDTO model)
         {
-            // 1. Chuẩn hóa dữ liệu
+            var (success, _) = await CreateUserAndCustomerAsync(model, emailConfirmed: false);
+            return success;
+        }
+
+        public async Task<(bool Success, string Message)> SendRegisterOtpAsync(RegisterDTO model)
+        {
+            string userName = model.UserName.Trim();
+            string email = model.Email.Trim();
+            string normalizedUserName = userName.ToUpperInvariant();
+            string normalizedEmail = email.ToUpperInvariant();
+
+            bool userNameExists = await _context.Users.AnyAsync(u =>
+                u.NormalizedUserName == normalizedUserName ||
+                (u.UserName != null && u.UserName.ToUpper() == normalizedUserName));
+
+            if (userNameExists)
+                return (false, "Tên đăng nhập (Username) đã tồn tại.");
+
+            bool emailExists = await _context.Users.AnyAsync(u =>
+                u.NormalizedEmail == normalizedEmail ||
+                (u.Email != null && u.Email.ToUpper() == normalizedEmail));
+
+            if (emailExists)
+                return (false, "Email này đã được đăng ký tài khoản.");
+
+            var otpCode = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+            var cacheKey = GetOtpCacheKey(normalizedEmail);
+            var pending = new PendingRegistration
+            {
+                Data = new RegisterDTO
+                {
+                    FullName = model.FullName.Trim(),
+                    UserName = userName,
+                    Email = email,
+                    Phone = model.Phone?.Trim(),
+                    Password = model.Password,
+                    ConfirmPassword = model.ConfirmPassword
+                },
+                OtpCode = otpCode,
+                SentAtUtc = DateTime.UtcNow,
+                Attempts = 0
+            };
+
+            _cache.Set(cacheKey, pending, TimeSpan.FromMinutes(5));
+
+            try
+            {
+                await _emailService.SendRegisterOtpAsync(email, pending.Data.FullName, otpCode);
+                return (true, $"Đã gửi mã OTP gồm 6 chữ số tới {email}. Mã có hiệu lực trong 5 phút.");
+            }
+            catch (Exception ex)
+            {
+                _cache.Remove(cacheKey);
+                return (false, $"Không gửi được email xác thực: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> ResendRegisterOtpAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return (false, "Thiếu địa chỉ Email.");
+
+            string normalizedEmail = email.Trim().ToUpperInvariant();
+            string cacheKey = GetOtpCacheKey(normalizedEmail);
+
+            if (!_cache.TryGetValue<PendingRegistration>(cacheKey, out var pending) || pending == null)
+                return (false, "Phiên đăng ký đã hết hạn, vui lòng điền lại thông tin đăng ký.");
+
+            var secondsSinceLast = (DateTime.UtcNow - pending.SentAtUtc).TotalSeconds;
+            if (secondsSinceLast < 30)
+            {
+                int waitSec = Math.Max(1, (int)Math.Ceiling(30 - secondsSinceLast));
+                return (false, $"Vui lòng đợi {waitSec} giây trước khi gửi lại mã OTP.");
+            }
+
+            var newOtp = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+            pending.OtpCode = newOtp;
+            pending.SentAtUtc = DateTime.UtcNow;
+            pending.Attempts = 0;
+
+            _cache.Set(cacheKey, pending, TimeSpan.FromMinutes(5));
+
+            try
+            {
+                await _emailService.SendRegisterOtpAsync(pending.Data.Email, pending.Data.FullName, newOtp);
+                return (true, $"Đã gửi lại mã OTP mới tới {pending.Data.Email}.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Không gửi được email xác thực: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool Success, string Message)> VerifyRegisterOtpAsync(VerifyRegisterOtpDTO model)
+        {
+            string normalizedEmail = model.Email.Trim().ToUpperInvariant();
+            string cacheKey = GetOtpCacheKey(normalizedEmail);
+
+            if (!_cache.TryGetValue<PendingRegistration>(cacheKey, out var pending) || pending == null)
+                return (false, "Mã OTP đã hết hạn hoặc không tồn tại. Vui lòng đăng ký lại.");
+
+            if (pending.Attempts >= 5)
+            {
+                _cache.Remove(cacheKey);
+                return (false, "Bạn đã nhập sai OTP quá 5 lần. Vui lòng đăng ký lại.");
+            }
+
+            if (!string.Equals(pending.OtpCode, model.OtpCode.Trim(), StringComparison.Ordinal))
+            {
+                pending.Attempts++;
+                _cache.Set(cacheKey, pending, TimeSpan.FromMinutes(5));
+                return (false, $"Mã OTP không chính xác (còn {5 - pending.Attempts} lần thử).");
+            }
+
+            var (created, message) = await CreateUserAndCustomerAsync(pending.Data, emailConfirmed: true);
+            if (!created)
+                return (false, message);
+
+            _cache.Remove(cacheKey);
+            return (true, "Xác thực email và đăng ký tài khoản thành công!");
+        }
+
+        private async Task<(bool Success, string Message)> CreateUserAndCustomerAsync(RegisterDTO model, bool emailConfirmed)
+        {
             string userName = model.UserName.Trim();
             string email = model.Email.Trim();
 
             string normalizedUserName = userName.ToUpperInvariant();
             string normalizedEmail = email.ToUpperInvariant();
 
-            // 2. Kiểm tra Username đã tồn tại chưa
-            bool userNameExists = await _context.Users
-                .AnyAsync(u => u.NormalizedUserName == normalizedUserName);
+            bool userNameExists = await _context.Users.AnyAsync(u =>
+                u.NormalizedUserName == normalizedUserName ||
+                (u.UserName != null && u.UserName.ToUpper() == normalizedUserName));
 
             if (userNameExists)
-                return false;
+                return (false, "Username đã tồn tại.");
 
-            // 3. Kiểm tra Email đã tồn tại chưa
-            bool emailExists = await _context.Users
-                .AnyAsync(u => u.NormalizedEmail == normalizedEmail);
+            bool emailExists = await _context.Users.AnyAsync(u =>
+                u.NormalizedEmail == normalizedEmail ||
+                (u.Email != null && u.Email.ToUpper() == normalizedEmail));
 
             if (emailExists)
-                return false;
+                return (false, "Email đã tồn tại.");
 
-            // 4. Tìm Role Customer
             var customerRole = await _context.Roles
                 .FirstOrDefaultAsync(r =>
                     r.NormalizedName == "CUSTOMER" ||
                     r.Name == "Customer");
 
             if (customerRole == null)
-                return false;
+                return (false, "Role Customer chưa được cấu hình.");
 
-            // 5. Bắt đầu transaction
-            using var transaction =
-                await _context.Database.BeginTransactionAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // 6. Tạo User
                 var user = new User
                 {
                     FullName = model.FullName.Trim(),
@@ -200,7 +327,7 @@ namespace HeThongBanHang_Comestic_API.Services
                     NormalizedUserName = normalizedUserName,
                     Email = email,
                     NormalizedEmail = normalizedEmail,
-                    EmailConfirmed = false,
+                    EmailConfirmed = emailConfirmed,
                     PhoneNumber = model.Phone?.Trim(),
                     PhoneNumberConfirmed = false,
                     IsActive = true,
@@ -209,18 +336,11 @@ namespace HeThongBanHang_Comestic_API.Services
                     ConcurrencyStamp = Guid.NewGuid().ToString()
                 };
 
-                // 7. Hash mật khẩu
-                user.PasswordHash = _passwordHasher.HashPassword(
-                    user,
-                    model.Password
-                );
-
-                // 8. Gán Role Customer
+                user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
                 user.Roles.Add(customerRole);
 
                 _context.Users.Add(user);
 
-                // 9. Tạo hồ sơ Customer và liên kết với User
                 var customer = new Customer
                 {
                     User = user,
@@ -232,14 +352,10 @@ namespace HeThongBanHang_Comestic_API.Services
                 };
 
                 _context.Set<Customer>().Add(customer);
-
-                // 10. Lưu dữ liệu
                 await _context.SaveChangesAsync();
-
-                // 11. Xác nhận transaction
                 await transaction.CommitAsync();
 
-                return true;
+                return (true, "Đăng ký tài khoản thành công!");
             }
             catch
             {
@@ -248,5 +364,14 @@ namespace HeThongBanHang_Comestic_API.Services
             }
         }
 
+        private static string GetOtpCacheKey(string normalizedEmail) => $"pending_register_otp:{normalizedEmail}";
+
+        private sealed class PendingRegistration
+        {
+            public RegisterDTO Data { get; set; } = new();
+            public string OtpCode { get; set; } = string.Empty;
+            public DateTime SentAtUtc { get; set; }
+            public int Attempts { get; set; }
+        }
     }
 }

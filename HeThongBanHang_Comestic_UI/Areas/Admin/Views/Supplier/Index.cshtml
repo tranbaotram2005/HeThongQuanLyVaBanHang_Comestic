@@ -1,0 +1,107 @@
+@model List<SupplierResponseDTO>
+@{
+    ViewData["Title"] = "Quản lý thương hiệu / Nhà cung cấp";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="card kpi-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 font-weight-bold text-dark">
+            <i class="fas fa-building text-secondary mr-2"></i>Danh sách thương hiệu (@Model.Count)
+        </h6>
+        <a asp-action="Create" class="btn btn-success btn-sm">
+            <i class="fas fa-plus mr-1"></i> Thêm thương hiệu
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width: 70px;">ID</th>
+                        <th style="width: 110px;">Logo</th>
+                        <th>Tên thương hiệu</th>
+                        <th>Người liên hệ</th>
+                        <th>SĐT / Email</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        bool isHidden = s.Status == 0;
+                        <tr style="@(isHidden ? "opacity: 0.55; background-color: #f1f5f9;" : "")">
+                            <td class="align-middle font-weight-bold">#@s.Id</td>
+                            <td class="align-middle">
+                                @if (!string.IsNullOrEmpty(s.Picture))
+                                {
+                                    <img src="~/Supplier/@s.Picture" alt="@s.CompanyName"
+                                         style="max-width: 80px; max-height: 45px; object-fit: contain;" class="p-1 border bg-white rounded" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Chưa có</span>
+                                }
+                            </td>
+                            <td class="align-middle font-weight-bold">@s.CompanyName</td>
+                            <td class="align-middle">@(s.ContactName ?? "---")</td>
+                            <td class="align-middle">
+                                <div>@(s.Phone ?? "---")</div>
+                                <small class="text-muted">@s.Email</small>
+                            </td>
+                            <td class="align-middle">
+                                @if (isHidden)
+                                {
+                                    <span class="badge badge-secondary">Đã ẩn</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-success">Đang hiện</span>
+                                }
+                            </td>
+                            <td class="align-middle">
+                                <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-warning" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if (!isHidden)
+                                {
+                                    <form asp-action="Hide" asp-route-id="@s.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xác nhận ẩn thương hiệu này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Ẩn thương hiệu">
+                                            <i class="fas fa-eye-slash"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Show" asp-route-id="@s.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Hiện lại thương hiệu">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

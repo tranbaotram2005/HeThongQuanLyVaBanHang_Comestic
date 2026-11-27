@@ -1,0 +1,187 @@
+@model DashboardVM
+@{
+    ViewData["Title"] = "Dashboard Quản Trị";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<!-- 4 Thẻ thống kê KPI -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card kpi-card border-left border-warning h-100" style="border-left-width: 4px !important;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Đơn chờ duyệt</div>
+                    <div class="h4 mb-0 font-weight-bold text-dark">@Model.PendingOrders</div>
+                    <small class="text-muted">Tổng đơn: @Model.TotalOrders | Đang giao: @Model.ShippingOrders</small>
+                </div>
+                <i class="fas fa-clock fa-2x text-warning"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card kpi-card border-left border-success h-100" style="border-left-width: 4px !important;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Doanh thu hoàn thành</div>
+                    <div class="h4 mb-0 font-weight-bold text-dark">@Model.CompletedRevenue.ToString("N0") đ</div>
+                    <small class="text-muted">Đơn hoàn thành: @Model.CompletedOrders</small>
+                </div>
+                <i class="fas fa-coins fa-2x text-success"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card kpi-card border-left border-primary h-100" style="border-left-width: 4px !important;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Sản phẩm</div>
+                    <div class="h4 mb-0 font-weight-bold text-dark">@Model.ActiveProducts / @Model.TotalProducts</div>
+                    <small class="text-muted">Đang ẩn: @Model.HiddenProducts</small>
+                </div>
+                <i class="fas fa-box-open fa-2x text-primary"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card kpi-card border-left border-info h-100" style="border-left-width: 4px !important;">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Danh mục & Thương hiệu</div>
+                    <div class="h4 mb-0 font-weight-bold text-dark">@Model.ActiveCategories DM | @Model.ActiveSuppliers NCC</div>
+                    <small class="text-muted">Tổng: @Model.TotalCategories DM, @Model.TotalSuppliers NCC</small>
+                </div>
+                <i class="fas fa-layer-group fa-2x text-info"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lối tắt thao tác nhanh -->
+<div class="card kpi-card mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+        <span class="font-weight-bold text-dark mb-2 mb-md-0">
+            <i class="fas fa-bolt text-warning mr-1"></i> Thao tác nhanh
+        </span>
+        <div>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="CreateOrder" class="btn btn-success btn-sm mr-2 mb-1">
+                <i class="fas fa-cart-plus mr-1"></i> Đặt đơn dùm khách
+            </a>
+            <a asp-area="Admin" asp-controller="Product" asp-action="Create" class="btn btn-primary btn-sm mr-2 mb-1">
+                <i class="fas fa-plus mr-1"></i> Thêm sản phẩm
+            </a>
+            <a asp-area="Admin" asp-controller="Category" asp-action="Create" class="btn btn-info btn-sm mr-2 mb-1">
+                <i class="fas fa-folder-plus mr-1"></i> Thêm danh mục
+            </a>
+            <a asp-area="Admin" asp-controller="Supplier" asp-action="Create" class="btn btn-secondary btn-sm mb-1">
+                <i class="fas fa-building mr-1"></i> Thêm thương hiệu
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Đơn hàng gần đây -->
+<div class="card kpi-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 font-weight-bold text-dark">
+            <i class="fas fa-clipboard-list text-primary mr-2"></i>Đơn hàng gần đây
+        </h6>
+        <div>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" asp-route-mode="mine" class="btn btn-outline-primary btn-sm mr-1">
+                Đơn tôi đặt dùm (@Model.MyEmployeeOrdersCount)
+            </a>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" asp-route-mode="all" class="btn btn-primary btn-sm">
+                Quản lý tất cả đơn
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.RecentOrders.Any())
+        {
+            <div class="p-4 text-center text-muted">Chưa có đơn hàng nào.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Nguồn đặt</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th style="width: 190px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentOrders)
+                        {
+                            var ship = item.ShipInfos?.FirstOrDefault();
+                            <tr>
+                                <td class="align-middle font-weight-bold">#@item.Id</td>
+                                <td class="align-middle">@(item.CustomerName ?? ship?.ShipName ?? "Khách hàng")</td>
+                                <td class="align-middle">
+                                    @if (!string.IsNullOrEmpty(item.EmployeeName))
+                                    {
+                                        <span class="badge badge-info">NV: @item.EmployeeName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Khách tự đặt</span>
+                                    }
+                                </td>
+                                <td class="align-middle">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="align-middle font-weight-bold text-danger">@item.TotalAmount.ToString("N0") đ</td>
+                                <td class="align-middle">
+                                    @switch (item.Status)
+                                    {
+                                        case 0:<span class="badge badge-warning text-dark">Chờ xử lý</span>break;
+                                        case 1:<span class="badge badge-info">Đã duyệt</span>break;
+                                        case 2:<span class="badge badge-success">Hoàn thành</span>break;
+                                        default:<span class="badge badge-danger">Đã hủy</span>break;
+                                    }
+                                </td>
+                                <td class="align-middle">
+                                    <a asp-area="Admin" asp-controller="Orders" asp-action="Detail" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                    @if (item.Status == 0)
+                                    {
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="ApproveOrder"
+                                           asp-route-id="@item.Id" asp-route-status="1"
+                                           asp-route-returnUrl="/Admin/Dashboard"
+                                           class="btn btn-sm btn-primary">Duyệt</a>
+                                    }
+                                    else if (item.Status == 1)
+                                    {
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="ApproveOrder"
+                                           asp-route-id="@item.Id" asp-route-status="2"
+                                           asp-route-returnUrl="/Admin/Dashboard"
+                                           class="btn btn-sm btn-success">Hoàn thành</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

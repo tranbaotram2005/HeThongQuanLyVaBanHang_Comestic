@@ -1,0 +1,126 @@
+@model List<ShipInfoResponseDTO>
+@{
+    ViewData["Title"] = ViewBag.OrderId != null ? $"Giao hàng của đơn #{ViewBag.OrderId}" : "Quản lý giao hàng";
+    int? orderId = ViewBag.OrderId;
+    int? status = ViewBag.Status;
+    var shipperMap = ViewBag.ShipperMap as Dictionary<int, string> ?? new Dictionary<int, string>();
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="card kpi-card mb-3">
+    <div class="card-body py-3">
+        <form method="get" class="form-inline">
+            <label class="mr-2 font-weight-bold small">Mã đơn hàng:</label>
+            <input type="number" name="orderId" value="@orderId" class="form-control form-control-sm mr-3" placeholder="VD: 12" style="width:130px;" />
+
+            <label class="mr-2 font-weight-bold small">Trạng thái vận chuyển:</label>
+            <select name="status" class="form-control form-control-sm mr-3">
+                <option value="">-- Tất cả --</option>
+                <option value="0" selected="@(status == 0)">Chờ xử lý</option>
+                <option value="1" selected="@(status == 1)">Chờ lấy hàng</option>
+                <option value="2" selected="@(status == 2)">Đang vận chuyển</option>
+                <option value="3" selected="@(status == 3)">Đã giao thành công</option>
+                <option value="4" selected="@(status == 4)">Đã hủy</option>
+            </select>
+
+            <button type="submit" class="btn btn-sm btn-primary mr-2">
+                <i class="fas fa-filter mr-1"></i>Lọc
+            </button>
+            @if (orderId.HasValue || status.HasValue)
+            {
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Xem tất cả</a>
+            }
+        </form>
+    </div>
+</div>
+
+<div class="card kpi-card">
+    <div class="card-header bg-white font-weight-bold py-3">
+        <i class="fas fa-truck text-info mr-2"></i>
+        @(orderId.HasValue ? $"Thông tin giao hàng của đơn #{orderId}" : "Tất cả thông tin giao hàng") (@Model.Count)
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Đơn hàng</th>
+                        <th>Người nhận & Địa chỉ</th>
+                        <th>Đơn vị vận chuyển</th>
+                        <th>Ngày gửi / Dự kiến</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Không có thông tin giao hàng nào.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var s in Model)
+                        {
+                            string shipperName = shipperMap.TryGetValue(s.ShipperId, out var name) ? name : $"Shipper #{s.ShipperId}";
+                            <tr>
+                                <td class="align-middle font-weight-bold">#@s.Id</td>
+                                <td class="align-middle">
+                                    <a asp-controller="Orders" asp-action="Detail" asp-route-id="@s.OrderId" class="font-weight-bold">
+                                        Đơn #@s.OrderId
+                                    </a>
+                                    <a asp-action="Index" asp-route-orderId="@s.OrderId" class="ml-1 badge badge-light border" title="Lọc giao hàng theo đơn này">
+                                        <i class="fas fa-filter"></i>
+                                    </a>
+                                </td>
+                                <td class="align-middle small">
+                                    <div class="font-weight-bold">@s.ShipName - @s.ShipPhone</div>
+                                    <div class="text-muted">@s.ShipAddress @(!string.IsNullOrEmpty(s.ShipCity) ? $", {s.ShipCity}" : "")</div>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-light border px-2 py-1">@shipperName</span>
+                                </td>
+                                <td class="align-middle small">
+                                    <div>Gửi: @(s.ShippedDate?.ToString("dd/MM/yyyy") ?? "-")</div>
+                                    <div class="text-muted">Dự kiến: @(s.RequiredDate?.ToString("dd/MM/yyyy") ?? "-")</div>
+                                </td>
+                                <td class="align-middle">
+                                    @switch (s.Status)
+                                    {
+                                        case 0:<span class="badge badge-secondary">Chờ xử lý</span>break;
+                                        case 1:<span class="badge badge-warning text-dark">Chờ lấy hàng</span>break;
+                                        case 2:<span class="badge badge-info">Đang vận chuyển</span>break;
+                                        case 3:<span class="badge badge-success">Đã giao thành công</span>break;
+                                        case 4:<span class="badge badge-danger">Đã hủy</span>break;
+                                        default:<span class="badge badge-light">Không xác định</span>break;
+                                    }
+                                </td>
+                                <td class="align-middle">
+                                    <a asp-action="Detail" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit mr-1"></i>Chi tiết / Cập nhật
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

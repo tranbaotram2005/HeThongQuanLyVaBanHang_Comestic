@@ -1,0 +1,51 @@
+@model OptionPresetFormVM
+@{
+    ViewData["Title"] = "Thêm Option mẫu";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card kpi-card">
+            <div class="card-header bg-white font-weight-bold py-3">
+                <i class="fas fa-plus-circle text-success mr-2"></i>Thêm Option mẫu dùng chung
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="form-group">
+                        <label>Tên nhóm thuộc tính *</label>
+                        <input asp-for="Name" class="form-control" placeholder="VD: Dung tích, Mùi hương, Loại da, Màu sắc..." />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Các giá trị gợi ý * (phân cách bằng dấu phẩy hoặc xuống dòng)</label>
+                        <textarea asp-for="ValuesText" class="form-control" rows="3" placeholder="VD: 10ml, 30ml, 50ml, 100ml"></textarea>
+                        <span asp-validation-for="ValuesText" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả ngắn</label>
+                        <input asp-for="Description" class="form-control" placeholder="Dùng cho nhóm sản phẩm nào..." />
+                    </div>
+
+                    <div class="form-group form-check">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label">Hiển thị trong danh sách gợi ý khi tạo/sửa sản phẩm</label>
+                    </div>
+
+                    <div class="text-right mt-4">
+                        <a asp-action="Index" class="btn btn-secondary mr-2">Quay lại</a>
+                        <button type="submit" class="btn btn-success px-4">Lưu Option mẫu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,135 @@
+@model List<OrderResponseDTO>
+@{
+    ViewData["Title"] = ViewBag.PageTitle as string ?? "Quản lý đơn hàng";
+    string activeMode = ViewBag.ActiveMode as string ?? "all";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="card kpi-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-3">
+        <div class="mb-2 mb-md-0">
+            <a asp-action="Index" asp-route-mode="all"
+               class="btn btn-sm @(activeMode == "all" ? "btn-primary" : "btn-outline-primary") mr-1">
+                <i class="fas fa-list mr-1"></i> Tất cả đơn hàng
+            </a>
+            <a asp-action="Index" asp-route-mode="mine"
+               class="btn btn-sm @(activeMode == "mine" ? "btn-info" : "btn-outline-info")">
+                <i class="fas fa-user-tag mr-1"></i> Đơn tôi đặt dùm
+            </a>
+        </div>
+        <a asp-action="CreateOrder" class="btn btn-success btn-sm">
+            <i class="fas fa-cart-plus mr-1"></i> Đặt đơn dùm khách
+        </a>
+    </div>
+
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="p-4 text-center text-muted">Không có đơn hàng nào.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Nguồn đặt</th>
+                            <th>Ngày đặt</th>
+                            <th>Số SP</th>
+                            <th>Thanh toán</th>
+                            <th>Tổng tiền</th>
+                            <th>Người duyệt</th>
+                            <th>Trạng thái</th>
+                            <th style="width: 190px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var ship = item.ShipInfos?.FirstOrDefault();
+                            var pay = item.Payments?.FirstOrDefault();
+                            <tr>
+                                <td class="align-middle font-weight-bold">#@item.Id</td>
+                                <td class="align-middle">
+                                    <div>@(item.CustomerName ?? ship?.ShipName ?? "---")</div>
+                                    @if (!string.IsNullOrEmpty(ship?.ShipPhone))
+                                    {
+                                        <small class="text-muted">@ship.ShipPhone</small>
+                                    }
+                                </td>
+                                <td class="align-middle">
+                                    @if (!string.IsNullOrEmpty(item.EmployeeName))
+                                    {
+                                        <span class="badge badge-info">NV: @item.EmployeeName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Khách tự đặt</span>
+                                    }
+                                    <div><small class="text-muted">@(item.Receive ?? "Giao tận nơi")</small></div>
+                                </td>
+                                <td class="align-middle">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="align-middle text-center">@(item.OrderDetails?.Sum(d => d.Quantity) ?? 0)</td>
+                                <td class="align-middle">
+                                    <div>@(pay?.Method ?? "---")</div>
+                                    @if (pay?.Status == 1)
+                                    {
+                                        <span class="badge badge-success">Đã thanh toán</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning text-dark">Chưa thanh toán</span>
+                                    }
+                                </td>
+                                <td class="align-middle font-weight-bold text-danger">@item.TotalAmount.ToString("N0") đ</td>
+                                <td class="align-middle">@(item.ApprovedByName ?? "---")</td>
+                                <td class="align-middle">
+                                    @switch (item.Status)
+                                    {
+                                        case 0:<span class="badge badge-warning text-dark">Chờ xử lý</span>break;
+                                        case 1:<span class="badge badge-info">Đã duyệt / Đang giao</span>break;
+                                        case 2:<span class="badge badge-success">Hoàn thành</span>break;
+                                        default:<span class="badge badge-danger">Đã hủy</span>break;
+                                    }
+                                </td>
+                                <td class="align-middle">
+                                    <a asp-action="Detail" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary mb-1">
+                                        Chi tiết
+                                    </a>
+                                    @if (item.Status == 0)
+                                    {
+                                        <a asp-action="ApproveOrder" asp-route-id="@item.Id" asp-route-status="1"
+                                           asp-route-returnUrl="@($"/Admin/Orders?mode={activeMode}")"
+                                           class="btn btn-sm btn-primary mb-1">Duyệt</a>
+                                    }
+                                    else if (item.Status == 1)
+                                    {
+                                        <a asp-action="ApproveOrder" asp-route-id="@item.Id" asp-route-status="2"
+                                           asp-route-returnUrl="@($"/Admin/Orders?mode={activeMode}")"
+                                           class="btn btn-sm btn-success mb-1">Hoàn thành</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,217 @@
+@model ProductEditWithVariantsVM
+@{
+    ViewData["Title"] = "Cập nhật sản phẩm";
+    var variants = Model?.Variants ?? new List<ProductVariantFormItem>();
+    var presetOpt1 = string.Join(", ", variants.Select(v => v.Option1Value).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase));
+    var presetOpt2 = string.Join(", ", variants.Select(v => v.Option2Value).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase));
+}
+
+<div class="row justify-content-center">
+    <div class="col-xl-11">
+        <form asp-action="Edit" asp-route-id="@Model?.Id" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Picture" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="card kpi-card mb-4">
+                <div class="card-header bg-white font-weight-bold py-3">
+                    <i class="fas fa-edit text-warning mr-2"></i>Cập nhật sản phẩm #@Model?.Id
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Tên sản phẩm *</label>
+                        <input asp-for="ProductName" class="form-control" />
+                        <span asp-validation-for="ProductName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Giá hiển thị chung (đ)</label>
+                            <input asp-for="UnitPrice" id="UnitPrice" type="number" min="0" step="1000" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Tổng tồn kho chung</label>
+                            <input asp-for="UnitsInStock" type="number" min="0" class="form-control" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Thương hiệu (Brand)</label>
+                            <input asp-for="Brand" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Danh mục *</label>
+                            <select asp-for="CategoryId"
+                                    asp-items="@(new SelectList(ViewBag.Categories, "Id", "CategoryName"))"
+                                    class="form-control">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Nhà cung cấp *</label>
+                            <select asp-for="SupplierId"
+                                    asp-items="@(new SelectList(ViewBag.Suppliers, "Id", "CompanyName"))"
+                                    class="form-control">
+                                <option value="">-- Chọn nhà cung cấp --</option>
+                            </select>
+                            <span asp-validation-for="SupplierId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row align-items-center">
+                        <div class="form-group col-md-3">
+                            <label>Ảnh hiện tại</label><br />
+                            @if (!string.IsNullOrEmpty(Model?.Picture))
+                            {
+                                <img src="~/Picture/@Model.Picture" style="width:100px;height:100px;object-fit:contain;" class="border rounded bg-white p-1" />
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Chưa có ảnh</span>
+                            }
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Đổi ảnh mới</label>
+                            <input type="file" name="ImageFile" class="form-control-file" accept="image/*" />
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label>Ghi chú / Nhãn khuyến mãi</label>
+                            <input asp-for="Notes" class="form-control" placeholder="FlashSale / Combo / FreeGift" />
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label>Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card kpi-card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <span class="font-weight-bold">
+                        <i class="fas fa-layer-group text-primary mr-2"></i>Danh sách biến thể & Nhóm thuộc tính (@variants.Count)
+                    </span>
+                    <button type="button" id="btnAddVariantRow" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus mr-1"></i>Thêm biến thể mới
+                    </button>
+                </div>
+
+                <partial name="_OptionPresetBar" model="(Model?.Option1Name, Model?.Option2Name, presetOpt1, presetOpt2, true)" />
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover mb-0" id="variantTable" data-is-edit="true">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="min-width:160px;">Tên biến thể</th>
+                                    <th class="col-opt1" style="min-width:115px; display:none;"><span id="thOpt1Label">Thuộc tính 1</span></th>
+                                    <th class="col-opt2" style="min-width:115px; display:none;"><span id="thOpt2Label">Thuộc tính 2</span></th>
+                                    <th style="min-width:120px;">SKU</th>
+                                    <th style="min-width:110px;">Giá bán (đ)</th>
+                                    <th style="min-width:110px;">Giá gốc (đ)</th>
+                                    <th style="min-width:85px;">Tồn kho</th>
+                                    <th style="min-width:180px;">Ảnh biến thể</th>
+                                    <th class="text-center" style="width:75px;">Mặc định</th>
+                                    <th style="min-width:115px;">Trạng thái / Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantTableBody">
+                                @for (int i = 0; i < variants.Count; i++)
+                                {
+                                    var v = variants[i];
+                                    <tr class="variant-row">
+                                        <td>
+                                            <input type="hidden" name="Variants[@i].Id" value="@v.Id" />
+                                            <input type="hidden" name="Variants[@i].ImageUrl" value="@v.ImageUrl" />
+                                            <input type="hidden" name="Variants[@i].OriginalStatus" value="@v.OriginalStatus" />
+                                            <input type="hidden" name="Variants[@i].Description" value="@v.Description" />
+                                            <input type="hidden" name="Variants[@i].Barcode" value="@v.Barcode" />
+                                            <input type="hidden" name="Variants[@i].Weight" value="@v.Weight" />
+                                            <input type="hidden" name="Variants[@i].Length" value="@v.Length" />
+                                            <input type="hidden" name="Variants[@i].Width" value="@v.Width" />
+                                            <input type="hidden" name="Variants[@i].Height" value="@v.Height" />
+                                            <input type="text" name="Variants[@i].Name" value="@v.Name" class="form-control form-control-sm variant-name-input" placeholder="VD: 30ml - Hoa Hồng" />
+                                        </td>
+                                        <td class="col-opt1" style="display:none;">
+                                            <input type="text" name="Variants[@i].Option1Value" value="@v.Option1Value" class="form-control form-control-sm variant-opt1-input" placeholder="Giá trị nhóm 1" />
+                                        </td>
+                                        <td class="col-opt2" style="display:none;">
+                                            <input type="text" name="Variants[@i].Option2Value" value="@v.Option2Value" class="form-control form-control-sm variant-opt2-input" placeholder="Giá trị nhóm 2" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="Variants[@i].Sku" value="@v.Sku" class="form-control form-control-sm variant-sku-input" placeholder="Mã SKU" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].Price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm variant-price-input" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].CompareAtPrice" value="@v.CompareAtPrice" min="0" step="1000" class="form-control form-control-sm" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].StockQuantity" value="@v.StockQuantity" min="0" class="form-control form-control-sm variant-stock-input" />
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(v.ImageUrl))
+                                            {
+                                                <div class="mb-1">
+                                                    <img src="~/ProductVariant/@v.ImageUrl" style="width:48px;height:48px;object-fit:contain;" class="border rounded bg-white p-1" />
+                                                </div>
+                                            }
+                                            <input type="file" name="VariantFile_@i" class="form-control-file form-control-sm variant-file-input" accept="image/*" />
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="checkbox" name="Variants[@i].IsDefault" value="true" class="variant-default-chk" @(v.IsDefault ? "checked" : null) />
+                                        </td>
+                                        <td class="align-middle">
+                                            @if (v.Id > 0)
+                                            {
+                                                <select name="Variants[@i].Status" class="form-control form-control-sm">
+                                                    @if (v.Status == 1)
+                                                    {
+                                                        <option value="1" selected>Đang bán</option>
+                                                        <option value="0">Đã ẩn</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="1">Đang bán</option>
+                                                        <option value="0" selected>Đã ẩn</option>
+                                                    }
+                                                </select>
+                                            }
+                                            else
+                                            {
+                                                <input type="hidden" name="Variants[@i].Status" value="1" />
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-variant">
+                                                    <i class="fas fa-trash mr-1"></i>Xóa
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light small text-muted">
+                    Các thay đổi về thuộc tính tách nhóm, giá bán, tồn kho và trạng thái biến thể sẽ được cập nhật đồng bộ ngay khi bấm <strong>Cập nhật sản phẩm & biến thể</strong>.
+                </div>
+            </div>
+
+            <div class="text-right mb-4">
+                <a asp-action="Index" class="btn btn-secondary mr-2">Hủy</a>
+                <button type="submit" class="btn btn-warning px-4">
+                    <i class="fas fa-save mr-1"></i>Cập nhật sản phẩm & biến thể
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-product-variants.js"></script>
+}

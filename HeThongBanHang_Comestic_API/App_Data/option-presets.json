@@ -1,0 +1,67 @@
+[
+  {
+    "Id": 1,
+    "Name": "Dung t\u00EDch",
+    "Values": [
+      "10ml",
+      "30ml",
+      "50ml",
+      "75ml",
+      "100ml",
+      "200ml",
+      "400ml"
+    ],
+    "Description": "Th\u1EC3 t\u00EDch chai/l\u1ECD/tu\u00FDp n\u01B0\u1EDBc hoa, m\u1EF9 ph\u1EA9m",
+    "IsActive": true
+  },
+  {
+    "Id": 2,
+    "Name": "M\u00F9i h\u01B0\u01A1ng",
+    "Values": [
+      "Hoa H\u1ED3ng",
+      "G\u1ED7 Tuy\u1EBFt T\u00F9ng",
+      "Cam Bergamot",
+      "Vani",
+      "X\u1EA1 H\u01B0\u01A1ng",
+      "Tr\u00E0 Xanh"
+    ],
+    "Description": "Nh\u00F3m h\u01B0\u01A1ng cho n\u01B0\u1EDBc hoa, x\u1ECBt th\u01A1m, s\u1EEFa t\u1EAFm",
+    "IsActive": true
+  },
+  {
+    "Id": 3,
+    "Name": "M\u00E0u s\u1EAFc",
+    "Values": [
+      "A01 - \u0110\u1ECF D\u00E2u",
+      "A02 - \u0110\u1ECF Cam",
+      "A06 - \u0110\u1ECF N\u00E2u",
+      "A12 - N\u00E2u G\u1EA1ch",
+      "H\u1ED3ng \u0110\u00E0o"
+    ],
+    "Description": "B\u1EA3ng m\u00E0u son m\u00F4i, ph\u1EA5n m\u00E1, k\u1EBB m\u1EAFt",
+    "IsActive": true
+  },
+  {
+    "Id": 4,
+    "Name": "T\u00F4ng da",
+    "Values": [
+      "21 - S\u00E1ng (Light)",
+      "23 - T\u1EF1 nhi\u00EAn (Natural)",
+      "\u1EA4m (Warm)"
+    ],
+    "Description": "T\u00F4ng n\u1EC1n kem n\u1EC1n, cushion, che khuy\u1EBFt \u0111i\u1EC3m",
+    "IsActive": true
+  },
+  {
+    "Id": 5,
+    "Name": "Phi\u00EAn b\u1EA3n",
+    "Values": [
+      "Ti\u00EAu chu\u1EA9n",
+      "Mini Size",
+      "Full Size",
+      "Gift Set"
+    ],
+    "Description": "Quy c\u00E1ch \u0111\u00F3ng g\u00F3i ho\u1EB7c phi\u00EAn b\u1EA3n s\u1EA3n ph\u1EA9m",
+    "IsActive": true
+  }
+]

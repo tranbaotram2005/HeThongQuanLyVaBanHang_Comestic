@@ -1,0 +1,174 @@
+@model ProductCreateWithVariantsVM
+@{
+    ViewData["Title"] = "Thêm sản phẩm";
+    var variants = Model?.Variants ?? new List<ProductVariantFormItem>();
+    if (!variants.Any())
+    {
+        variants.Add(new ProductVariantFormItem { IsDefault = true, Status = 1, OriginalStatus = 1 });
+    }
+}
+
+<div class="row justify-content-center">
+    <div class="col-xl-11">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="card kpi-card mb-4">
+                <div class="card-header bg-white font-weight-bold py-3">
+                    <i class="fas fa-plus-circle text-success mr-2"></i>Thông tin sản phẩm mới
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Tên sản phẩm *</label>
+                        <input asp-for="ProductName" class="form-control" placeholder="Nhập tên sản phẩm" />
+                        <span asp-validation-for="ProductName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Giá mặc định (tùy chọn)</label>
+                            <input asp-for="UnitPrice" id="UnitPrice" type="number" min="0" step="1000" class="form-control" placeholder="Tự lấy theo biến thể mặc định nếu trống" />
+                            <span asp-validation-for="UnitPrice" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Tổng tồn kho (tùy chọn)</label>
+                            <input asp-for="UnitsInStock" type="number" min="0" class="form-control" placeholder="Tự cộng từ biến thể nếu trống" />
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Thương hiệu (Brand)</label>
+                            <input asp-for="Brand" class="form-control" placeholder="Ví dụ: Dior, Chanel, L'Oréal" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Danh mục *</label>
+                            <select asp-for="CategoryId"
+                                    asp-items="@(new SelectList(ViewBag.Categories, "Id", "CategoryName"))"
+                                    class="form-control">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Nhà cung cấp *</label>
+                            <select asp-for="SupplierId"
+                                    asp-items="@(new SelectList(ViewBag.Suppliers, "Id", "CompanyName"))"
+                                    class="form-control">
+                                <option value="">-- Chọn nhà cung cấp --</option>
+                            </select>
+                            <span asp-validation-for="SupplierId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Hình ảnh chính</label>
+                            <input type="file" name="ImageFile" class="form-control-file" accept="image/*" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Ghi chú / Nhãn khuyến mãi</label>
+                            <input asp-for="Notes" class="form-control" placeholder="FlashSale / Combo / FreeGift" />
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label>Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả sản phẩm"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card kpi-card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <span class="font-weight-bold">
+                        <i class="fas fa-layer-group text-primary mr-2"></i>Biến thể & Nhóm thuộc tính sản phẩm
+                    </span>
+                    <button type="button" id="btnAddVariantRow" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus mr-1"></i>Thêm dòng biến thể
+                    </button>
+                </div>
+
+                <partial name="_OptionPresetBar" model="(Model?.Option1Name, Model?.Option2Name, (string?)null, (string?)null, false)" />
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover mb-0" id="variantTable" data-is-edit="false">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="min-width:165px;">Tên biến thể</th>
+                                    <th class="col-opt1" style="min-width:120px; display:none;"><span id="thOpt1Label">Thuộc tính 1</span></th>
+                                    <th class="col-opt2" style="min-width:120px; display:none;"><span id="thOpt2Label">Thuộc tính 2</span></th>
+                                    <th style="min-width:125px;">SKU</th>
+                                    <th style="min-width:115px;">Giá bán (đ)</th>
+                                    <th style="min-width:115px;">Giá gốc (đ)</th>
+                                    <th style="min-width:90px;">Tồn kho</th>
+                                    <th style="min-width:185px;">Ảnh biến thể</th>
+                                    <th class="text-center" style="width:80px;">Mặc định</th>
+                                    <th class="text-center" style="width:65px;">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantTableBody">
+                                @for (int i = 0; i < variants.Count; i++)
+                                {
+                                    var v = variants[i];
+                                    <tr class="variant-row">
+                                        <td>
+                                            <input type="hidden" name="Variants[@i].Id" value="0" />
+                                            <input type="text" name="Variants[@i].Name" value="@v.Name" class="form-control form-control-sm variant-name-input" placeholder="VD: 30ml - Hoa Hồng" />
+                                        </td>
+                                        <td class="col-opt1" style="display:none;">
+                                            <input type="text" name="Variants[@i].Option1Value" value="@v.Option1Value" class="form-control form-control-sm variant-opt1-input" placeholder="VD: 30ml" />
+                                        </td>
+                                        <td class="col-opt2" style="display:none;">
+                                            <input type="text" name="Variants[@i].Option2Value" value="@v.Option2Value" class="form-control form-control-sm variant-opt2-input" placeholder="VD: Hoa Hồng" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="Variants[@i].Sku" value="@v.Sku" class="form-control form-control-sm variant-sku-input" placeholder="Tự tạo nếu trống" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].Price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm variant-price-input" placeholder="0" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].CompareAtPrice" value="@v.CompareAtPrice" min="0" step="1000" class="form-control form-control-sm" placeholder="Không bắt buộc" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Variants[@i].StockQuantity" value="@v.StockQuantity" min="0" class="form-control form-control-sm variant-stock-input" placeholder="0" />
+                                        </td>
+                                        <td>
+                                            <input type="file" name="VariantFile_@i" class="form-control-file form-control-sm variant-file-input" accept="image/*" />
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="checkbox" name="Variants[@i].IsDefault" value="true" class="variant-default-chk" @(v.IsDefault ? "checked" : null) />
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-variant" title="Xóa dòng">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light small text-muted">
+                    Mẹo: Nhập <strong>Tên nhóm 1 / 2</strong> (ví dụ <code>Dung tích</code>, <code>Mùi hương</code>) và giá trị cách dấu phẩy rồi bấm <strong>Tạo nhanh tổ hợp biến thể</strong> để khách hàng ngoài trang bán hàng chọn tách riêng từng nhóm nút.
+                </div>
+            </div>
+
+            <div class="text-right mb-4">
+                <a asp-action="Index" class="btn btn-secondary mr-2">Quay lại</a>
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="fas fa-save mr-1"></i>Lưu sản phẩm & biến thể
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/admin-product-variants.js"></script>
+}

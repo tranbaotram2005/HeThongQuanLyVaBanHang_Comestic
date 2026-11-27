@@ -48,9 +48,30 @@
         });
 
         if (!matchedVariant) {
-            console.log("Không tìm thấy variant phù hợp");
+            selectedVariantId = null;
+            $("#addToCartBtn").attr("data-variant-id", "");
             return;
         }
+
+        selectedVariantId = matchedVariant.id;
+        $("#priceDisplay").text(Number(matchedVariant.price).toLocaleString("vi-VN"));
+        $("#productImage").attr("src", matchedVariant.image);
+        $("#addToCartBtn").attr("data-variant-id", matchedVariant.id);
+    });
+
+    // ========================================
+    // CHỌN BIẾN THỂ TRỰC TIẾP (KHI KHÔNG CÓ OPTION GROUP)
+    // ========================================
+    $(document).on("click", "#modalContent .variant-btn", function () {
+        let variantId = Number($(this).data("variant-id"));
+        $('#modalContent .variant-btn').removeClass("active");
+        $(this).addClass("active");
+
+        let matchedVariant = (window.productVariants || []).find(function (v) {
+            return Number(v.id) === variantId;
+        });
+
+        if (!matchedVariant) return;
 
         selectedVariantId = matchedVariant.id;
         $("#priceDisplay").text(Number(matchedVariant.price).toLocaleString("vi-VN"));
@@ -106,6 +127,14 @@
         }
 
         if (!defaultVariant) return;
+
+        if ((window.totalGroups || 0) === 0) {
+            let vBtn = $('#modalContent .variant-btn[data-variant-id="' + defaultVariant.id + '"]');
+            if (vBtn.length > 0) {
+                vBtn.trigger("click");
+            }
+            return;
+        }
 
         for (let group in defaultVariant.options) {
             let value = defaultVariant.options[group];

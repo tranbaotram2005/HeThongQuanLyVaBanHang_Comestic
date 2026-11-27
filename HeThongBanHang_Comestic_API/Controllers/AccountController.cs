@@ -66,5 +66,47 @@ namespace HeThongBanHang_Comestic_API.Controllers
             });
         }
 
+        [AllowAnonymous]
+        [HttpPost("register-send-otp")]
+        public async Task<IActionResult> SendRegisterOtp(RegisterDTO model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var (success, message) = await _accountService.SendRegisterOtpAsync(model);
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new { message });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register-resend-otp")]
+        public async Task<IActionResult> ResendRegisterOtp(ResendRegisterOtpDTO model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var (success, message) = await _accountService.ResendRegisterOtpAsync(model.Email);
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new { message });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register-verify-otp")]
+        public async Task<IActionResult> VerifyRegisterOtp(VerifyRegisterOtpDTO model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var (success, message) = await _accountService.VerifyRegisterOtpAsync(model);
+            if (!success)
+                return BadRequest(new { message });
+
+            return Ok(new { message });
+        }
+
     }
 }

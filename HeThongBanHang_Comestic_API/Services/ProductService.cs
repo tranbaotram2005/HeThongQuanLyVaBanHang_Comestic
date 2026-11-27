@@ -20,18 +20,23 @@ namespace HeThongBanHang_Comestic_API.Services
             _mapper = mapper;
         }
 
+        private IQueryable<Product> GetActiveProductsQuery()
+        {
+            return _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .Where(p =>
+                    p.Status == 1 &&
+                    (p.CategoryId == null || (p.Category != null && p.Category.Status == 1)) &&
+                    (p.SupplierId == null || (p.Supplier != null && p.Supplier.Status == 1)));
+        }
+
         // =====================================
         // LẤY DANH SÁCH SẢN PHẨM
         // =====================================
         public async Task<List<ProductResponseDTO>> GetAllAsync()
         {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .Where(p =>
-                    p.Status == 1 &&
-                    (p.CategoryId == null ||
-                     (p.Category != null && p.Category.Status == 1)))
+            var products = await GetActiveProductsQuery()
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -43,15 +48,9 @@ namespace HeThongBanHang_Comestic_API.Services
         // =====================================
         public async Task<ProductResponseDTO?> GetByIdAsync(int id)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
+            var product = await GetActiveProductsQuery()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p =>
-                    p.Id == id &&
-                    p.Status == 1 &&
-                    (p.CategoryId == null ||
-                     (p.Category != null && p.Category.Status == 1)));
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
                 return null;
@@ -64,14 +63,8 @@ namespace HeThongBanHang_Comestic_API.Services
         // =====================================
         public async Task<List<ProductResponseDTO>> GetByCategoryAsync(int categoryId)
         {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .Where(p =>
-                    p.CategoryId == categoryId &&
-                    p.Status == 1 &&
-                    p.Category != null &&
-                    p.Category.Status == 1)
+            var products = await GetActiveProductsQuery()
+                .Where(p => p.CategoryId == categoryId && p.Category != null)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -83,19 +76,24 @@ namespace HeThongBanHang_Comestic_API.Services
         // =====================================
         public async Task<bool> CreateAsync(ProductCreateDTO dto, int userId)
         {
+            return (await CreateAndReturnIdAsync(dto, userId)).HasValue;
+        }
+
+        public async Task<int?> CreateAndReturnIdAsync(ProductCreateDTO dto, int userId)
+        {
             // Kiểm tra tên sản phẩm
             if (string.IsNullOrWhiteSpace(dto.ProductName))
-                return false;
+                return null;
 
             // Kiểm tra giá không được âm
             if (dto.UnitPrice < 0)
-                return false;
+                return null;
 
             // Kiểm tra số lượng không được âm
             if (dto.UnitsInStock < 0 ||
                 dto.UnitsOnOrder < 0 ||
                 dto.ReorderLevel < 0)
-                return false;
+                return null;
 
             // Kiểm tra danh mục có tồn tại và đang hoạt động không
             if (dto.CategoryId.HasValue)
@@ -106,7 +104,7 @@ namespace HeThongBanHang_Comestic_API.Services
                         c.Status == 1);
 
                 if (!categoryExists)
-                    return false;
+                    return null;
             }
 
             // Kiểm tra nhà cung cấp có tồn tại và đang hoạt động không
@@ -118,7 +116,7 @@ namespace HeThongBanHang_Comestic_API.Services
                         s.Status == 1);
 
                 if (!supplierExists)
-                    return false;
+                    return null;
             }
 
             var product = _mapper.Map<Product>(dto);
@@ -130,7 +128,7 @@ namespace HeThongBanHang_Comestic_API.Services
 
             _context.Products.Add(product);
 
-            return await _context.SaveChangesAsync() > 0;
+            return await _context.SaveChangesAsync() > 0 ? product.Id : null;
         }
 
         // =====================================
@@ -230,13 +228,7 @@ namespace HeThongBanHang_Comestic_API.Services
             }
 
             // Truy vấn sản phẩm đang hoạt động
-            var query = _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Supplier)
-                .Where(p =>
-                    p.Status == 1 &&
-                    (p.CategoryId == null ||
-                     (p.Category != null && p.Category.Status == 1)));
+            var query = GetActiveProductsQuery();
 
             // Lọc theo giá thấp nhất
             if (minPrice.HasValue)

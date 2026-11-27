@@ -29,11 +29,10 @@ namespace HeThongBanHang_Comestic_UI.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Gọi song song cả 2 API
-            bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-            var categoriesTask = isStaff ? _categoryService.GetAllForAdminAsync() : _categoryService.GetAllAsync();
-            var productsTask = isStaff ? _productService.GetAllForAdminAsync() : _productService.GetAllAsync();
-            var suppliersTask = isStaff ? _supplierService.GetAllForAdminAsync() : _supplierService.GetAllAsync();
+            // Gọi song song các API đang hoạt động cho trang bán hàng
+            var categoriesTask = _categoryService.GetAllAsync();
+            var productsTask = _productService.GetAllAsync();
+            var suppliersTask = _supplierService.GetAllAsync();
             await Task.WhenAll(categoriesTask, productsTask, suppliersTask);
             var categories = categoriesTask.Result;
             var allProducts = productsTask.Result;
@@ -46,9 +45,7 @@ namespace HeThongBanHang_Comestic_UI.Controllers
             var viewModel = new HomeViewModels
             {
                 Categories = categories,
-                Products = (isStaff
-                    ? allProducts.OrderBy(p => p.Status).ThenBy(_ => Guid.NewGuid())
-                    : allProducts.OrderBy(_ => Guid.NewGuid())).Take(8).ToList(),
+                Products = allProducts.OrderBy(_ => Guid.NewGuid()).Take(8).ToList(),
                 Suppliers = suppliersTask.Result
             };
             return View(viewModel);

@@ -1,0 +1,112 @@
+@model PaymentResponseDTO
+@{
+    ViewData["Title"] = $"Chi tiết thanh toán #{Model.Id}";
+    var order = ViewBag.Order as OrderResponseDTO;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 font-weight-bold">Chi tiết giao dịch thanh toán #@Model.Id</h5>
+    <div>
+        <a asp-action="Index" asp-route-orderId="@Model.OrderId" class="btn btn-outline-primary btn-sm mr-2">
+            <i class="fas fa-list mr-1"></i> Thanh toán của đơn #@Model.OrderId
+        </a>
+        <a asp-action="Index" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Tất cả thanh toán
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card kpi-card h-100">
+            <div class="card-header bg-white font-weight-bold py-3">
+                <i class="fas fa-receipt text-info mr-2"></i>Thông tin thanh toán
+            </div>
+            <div class="card-body">
+                <p>
+                    <b>Đơn hàng liên kết:</b>
+                    <a asp-controller="Orders" asp-action="Detail" asp-route-id="@Model.OrderId" class="font-weight-bold">
+                        Đơn #@Model.OrderId
+                    </a>
+                    @if (order != null && !string.IsNullOrEmpty(order.CustomerName))
+                    {
+                        <span class="text-muted ml-2">(@order.CustomerName)</span>
+                    }
+                </p>
+                <p><b>Phương thức:</b> <span class="badge badge-light border">@(Model.Method ?? "---")</span></p>
+                <p><b>Số tiền:</b> <span class="text-danger font-weight-bold h5">@Model.Amount.ToString("N0") đ</span></p>
+                <p>
+                    <b>Trạng thái hiện tại:</b>
+                    @switch (Model.Status)
+                    {
+                        case 1:<span class="badge badge-success">Đã thanh toán</span>break;
+                        case 2:<span class="badge badge-danger">Thất bại</span>break;
+                        case 3:<span class="badge badge-secondary">Đã hoàn tiền</span>break;
+                        default:<span class="badge badge-warning text-dark">Chưa thanh toán</span>break;
+                    }
+                </p>
+                <p><b>Ngày tạo:</b> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                <p><b>Cập nhật lần cuối:</b> @(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "-")</p>
+                <p class="mb-0"><b>Ghi chú:</b> @(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+        <div class="card kpi-card h-100">
+            <div class="card-header bg-white font-weight-bold py-3">
+                <i class="fas fa-edit text-warning mr-2"></i>Cập nhật trạng thái thanh toán
+            </div>
+            <div class="card-body">
+                @if (Model.Status == 3)
+                {
+                    <div class="alert alert-secondary mb-0">
+                        Giao dịch này đã ở trạng thái <strong>Đã hoàn tiền</strong> nên không thể thay đổi thêm.
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <label>Trạng thái mới</label>
+                            <select name="status" class="form-control">
+                                <option value="0" selected="@(Model.Status == 0)">0 - Chưa thanh toán</option>
+                                <option value="1" selected="@(Model.Status == 1)" disabled="@(Model.Status == 2)">1 - Đã thanh toán</option>
+                                <option value="2" selected="@(Model.Status == 2)">2 - Thất bại</option>
+                                <option value="3" selected="@(Model.Status == 3)">3 - Đã hoàn tiền</option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Lưu ý: Không thể chuyển từ Thất bại sang Đã thanh toán, và sau khi Đã hoàn tiền sẽ khóa chỉnh sửa.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ghi chú cập nhật</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="VD: Nhân viên xác nhận đã thu tiền COD...">@Model.Notes</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-block font-weight-bold">
+                            <i class="fas fa-save mr-1"></i> Lưu trạng thái thanh toán
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

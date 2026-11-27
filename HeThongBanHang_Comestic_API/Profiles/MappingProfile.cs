@@ -341,6 +341,8 @@ namespace HeThongBanHang_Comestic_API.Profiles
             // Order -> OrderResponseDTO
             CreateMap<Order, OrderResponseDTO>()
                 .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.CustomerName, opt => opt.Ignore())
+                .ForMember(dest => dest.EmployeeName, opt => opt.Ignore())
                 .ForMember(dest => dest.ApprovedByName, opt => opt.MapFrom(src =>
         (src.Status == 1 || src.Status == 2) && src.UpdatedByNavigation != null
             ? src.UpdatedByNavigation.FullName

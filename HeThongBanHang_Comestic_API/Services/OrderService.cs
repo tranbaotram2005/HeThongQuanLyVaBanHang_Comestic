@@ -303,28 +303,20 @@ namespace HeThongBanHang_Comestic_API.Services
             if (customer == null)
                 return new List<OrderResponseDTO>();
 
-            // 2. Lấy danh sách đơn hàng của khách hàng
+            // 2. Lấy danh sách đơn hàng của khách hàng (gồm tự đặt và nhân viên đặt dùm)
             var orders = await _context.Orders
                 .Where(o => o.CustomerId == customer.Id)
+                .Include(o => o.Customer)
+                .Include(o => o.Employee)
+                .Include(o => o.CreatedByNavigation)
+                .Include(o => o.UpdatedByNavigation)
                 .Include(o => o.OrderDetails)
                 .Include(o => o.Payments)
                 .Include(o => o.ShipInfos)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
-            // 3. Chuyển danh sách Order sang OrderResponseDTO
-            var result = _mapper.Map<List<OrderResponseDTO>>(orders);
-
-            // 4. Tính tổng tiền cho từng đơn hàng
-            foreach (var order in result)
-            {
-                order.TotalAmount = order.OrderDetails.Sum(d =>
-                    d.LineTotal ?? (d.UnitPrice * d.Quantity))
-                    + (order.Freight ?? 0);
-            }
-
-            // 5. Trả về danh sách đơn hàng
-            return result;
+            return orders.Select(MapSingleOrder).ToList();
         }
 
         // Lấy chi tiết một đơn hàng của khách hàng đang đăng nhập
@@ -347,51 +339,56 @@ namespace HeThongBanHang_Comestic_API.Services
                 .Where(o =>
                     o.Id == orderId &&
                     o.CustomerId == customer.Id)
+                .Include(o => o.Customer)
+                .Include(o => o.Employee)
+                .Include(o => o.CreatedByNavigation)
+                .Include(o => o.UpdatedByNavigation)
                 .Include(o => o.OrderDetails)
                 .Include(o => o.Payments)
                 .Include(o => o.ShipInfos)
                 .FirstOrDefaultAsync();
 
-            // Không tìm thấy đơn hoặc đơn không thuộc khách này
-            if (order == null)
-                return null;
-
-            // 3. Map Order sang OrderResponseDTO
-            var result = _mapper.Map<OrderResponseDTO>(order);
-
-            // 4. Tính tổng tiền đơn hàng
-            result.TotalAmount = order.OrderDetails.Sum(d =>
-                d.LineTotal ?? (d.UnitPrice * d.Quantity))
-                + (order.Freight ?? 0);
-
-            // 5. Trả về chi tiết đơn hàng
-            return result;
+            return order == null ? null : MapSingleOrder(order);
         }
-        // Lấy danh sách tất cả đơn hàng (Admin, Employee)
-        public async Task<List<OrderResponseDTO>> GetAllOrdersAsync()
+
+        // Lấy danh sách đơn hàng do nhân viên đang đăng nhập đặt dùm khách
+        public async Task<List<OrderResponseDTO>> GetOrdersByEmployeeAsync(int userId)
         {
-            // 1. Lấy toàn bộ đơn hàng
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.UserId == userId && e.Status == 1);
+
             var orders = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.Employee)
+                .Include(o => o.CreatedByNavigation)
+                .Include(o => o.UpdatedByNavigation)
                 .Include(o => o.OrderDetails)
                 .Include(o => o.Payments)
                 .Include(o => o.ShipInfos)
-                .Include(o => o.UpdatedByNavigation)
+                .Where(o =>
+                    (employee != null && o.EmployeeId == employee.Id) ||
+                    (o.CreatedBy == userId && (o.Customer == null || o.Customer.UserId != userId)))
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
-            // 2. Map danh sách Order sang OrderResponseDTO
-            var result = _mapper.Map<List<OrderResponseDTO>>(orders);
+            return orders.Select(MapSingleOrder).ToList();
+        }
 
-            // 3. Tính tổng tiền từng đơn hàng
-            foreach (var order in result)
-            {
-                order.TotalAmount = order.OrderDetails.Sum(d =>
-                    d.LineTotal ?? (d.UnitPrice * d.Quantity))
-                    + (order.Freight ?? 0);
-            }
+        // Lấy danh sách tất cả đơn hàng (Admin, Employee)
+        public async Task<List<OrderResponseDTO>> GetAllOrdersAsync()
+        {
+            var orders = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.Employee)
+                .Include(o => o.CreatedByNavigation)
+                .Include(o => o.UpdatedByNavigation)
+                .Include(o => o.OrderDetails)
+                .Include(o => o.Payments)
+                .Include(o => o.ShipInfos)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
 
-            // 4. Trả về danh sách đơn hàng
-            return result;
+            return orders.Select(MapSingleOrder).ToList();
         }
 
         // ============================================================
@@ -399,26 +396,280 @@ namespace HeThongBanHang_Comestic_API.Services
         // ============================================================
         public async Task<OrderResponseDTO?> GetOrderByIdAsync(int orderId)
         {
-            // Lấy đơn hàng theo ID
             var order = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.Employee)
+                .Include(o => o.CreatedByNavigation)
+                .Include(o => o.UpdatedByNavigation)
                 .Include(o => o.OrderDetails)
                 .Include(o => o.Payments)
                 .Include(o => o.ShipInfos)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
-            // Không tìm thấy đơn hàng
-            if (order == null)
-                return null;
+            return order == null ? null : MapSingleOrder(order);
+        }
 
-            // Map sang DTO
-            var result = _mapper.Map<OrderResponseDTO>(order);
+        public async Task<List<CustomerSelectDTO>> GetCustomersAsync()
+        {
+            return await _context.Customers
+                .AsNoTracking()
+                .Where(c => c.Status == 1)
+                .OrderBy(c => c.ContactName)
+                .ThenBy(c => c.Id)
+                .Select(c => new CustomerSelectDTO
+                {
+                    Id = c.Id,
+                    UserId = c.UserId,
+                    ContactName = c.ContactName,
+                    Phone = c.Phone,
+                    Email = c.Email
+                })
+                .ToListAsync();
+        }
 
-            // Tính tổng tiền
-            result.TotalAmount = order.OrderDetails.Sum(d =>
+        public async Task<OrderResponseDTO?> CreateOrderByEmployeeAsync(
+            EmployeeOrderCreateDTO dto,
+            int employeeUserId)
+        {
+            if (dto.Items == null || !dto.Items.Any())
+                throw new Exception("Vui lòng chọn ít nhất 1 sản phẩm.");
+
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.Id == dto.CustomerId && c.Status == 1);
+            if (customer == null)
+                throw new Exception("Không tìm thấy khách hàng.");
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.UserId == employeeUserId && e.Status == 1);
+
+            var validPaymentMethods = new[] { "Chuyển khoản", "Momo", "Tiền mặt" };
+            if (!validPaymentMethods.Contains(dto.PaymentMethod))
+                throw new Exception("Phương thức thanh toán không hợp lệ.");
+
+            var shipper = await _context.Shippers
+                .FirstOrDefaultAsync(s => s.Status == 1);
+            if (shipper == null)
+                throw new Exception("Không có đơn vị vận chuyển hoạt động.");
+
+            var mergedItems = dto.Items
+                .GroupBy(i => i.ProductVariantId)
+                .Select(g => new { VariantId = g.Key, Quantity = g.Sum(x => x.Quantity) })
+                .ToList();
+
+            if (mergedItems.Any(x => x.Quantity <= 0))
+                throw new Exception("Số lượng sản phẩm phải lớn hơn 0.");
+
+            var variantIds = mergedItems.Select(x => x.VariantId).ToList();
+            var variants = await _context.ProductVariants
+                .Include(v => v.Product)
+                .Where(v => variantIds.Contains(v.Id) && v.Status == 1)
+                .ToDictionaryAsync(v => v.Id);
+
+            foreach (var req in mergedItems)
+            {
+                if (!variants.TryGetValue(req.VariantId, out var variant) ||
+                    variant.Product == null ||
+                    variant.Product.Status != 1 ||
+                    variant.Price == null ||
+                    variant.Price <= 0)
+                {
+                    throw new Exception($"Biến thể sản phẩm ID {req.VariantId} không hợp lệ hoặc ngừng kinh doanh.");
+                }
+
+                var availableStock = await _context.Inventories
+                    .Where(i => i.VariantId == variant.Id && i.Status == 1)
+                    .SumAsync(i => i.Quantity ?? 0);
+
+                if (req.Quantity > availableStock)
+                    throw new Exception($"Sản phẩm {variant.Name} không đủ tồn kho. Hiện còn {availableStock}.");
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var order = new Order
+                {
+                    CustomerId = customer.Id,
+                    EmployeeId = employee?.Id,
+                    OrderDate = DateTime.Now,
+                    Freight = 0,
+                    Receive = string.IsNullOrWhiteSpace(dto.Receive) ? "Mua tại quầy" : dto.Receive.Trim(),
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = employeeUserId,
+                    Notes = dto.Notes,
+                    Status = 0
+                };
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                decimal totalAmount = 0;
+
+                foreach (var req in mergedItems)
+                {
+                    var variant = variants[req.VariantId];
+                    var product = variant.Product!;
+                    decimal unitPrice = variant.Price!.Value;
+                    decimal lineTotal = unitPrice * req.Quantity;
+                    totalAmount += lineTotal;
+
+                    _context.OrderDetails.Add(new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        ProductId = product.Id,
+                        ProductVariantId = variant.Id,
+                        UnitPrice = unitPrice,
+                        Quantity = (short)req.Quantity,
+                        ProductName = product.ProductName,
+                        Sku = variant.Sku,
+                        VariantInfo = variant.Name,
+                        LineTotal = lineTotal,
+                        Discount = 0,
+                        CreatedAt = DateTime.Now,
+                        CreatedBy = employeeUserId,
+                        Status = 1
+                    });
+
+                    var inventories = await _context.Inventories
+                        .Where(i => i.VariantId == variant.Id && i.Status == 1 && (i.Quantity ?? 0) > 0)
+                        .OrderBy(i => i.Id)
+                        .ToListAsync();
+
+                    int remaining = req.Quantity;
+                    foreach (var inv in inventories)
+                    {
+                        if (remaining <= 0) break;
+                        int currentQty = inv.Quantity ?? 0;
+                        int deduct = Math.Min(currentQty, remaining);
+                        inv.Quantity = currentQty - deduct;
+                        inv.UpdatedAt = DateTime.Now;
+                        inv.UpdatedBy = employeeUserId;
+                        remaining -= deduct;
+                    }
+
+                    if (remaining > 0)
+                        throw new Exception($"Không thể trừ đủ tồn kho cho {variant.Name}.");
+
+                    variant.StockQuantity = inventories.Where(i => i.Status == 1).Sum(i => i.Quantity ?? 0);
+                    variant.UpdatedAt = DateTime.Now;
+                    variant.UpdatedBy = employeeUserId;
+                }
+
+                _context.Payments.Add(new Payment
+                {
+                    OrderId = order.Id,
+                    Amount = totalAmount,
+                    Method = dto.PaymentMethod,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = employeeUserId,
+                    Notes = "Nhân viên tạo đơn dùm khách",
+                    Status = 0
+                });
+
+                _context.ShipInfos.Add(new ShipInfo
+                {
+                    OrderId = order.Id,
+                    ShipperId = shipper.Id,
+                    ShipName = dto.ShipName,
+                    ShipPhone = dto.ShipPhone,
+                    ShipAddress = dto.ShipAddress,
+                    ShipCity = dto.ShipCity,
+                    ShipRegion = dto.ShipRegion,
+                    ShipCountry = dto.ShipCountry ?? "Vietnam",
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = employeeUserId,
+                    Notes = order.Receive,
+                    Status = 1
+                });
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var created = await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Employee)
+                    .Include(o => o.CreatedByNavigation)
+                    .Include(o => o.OrderDetails)
+                    .Include(o => o.Payments)
+                    .Include(o => o.ShipInfos)
+                    .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                var response = MapSingleOrder(created!);
+                if (dto.PaymentMethod == "Chuyển khoản")
+                {
+                    response.TransferContent = $"THANHTOAN {created!.Id}";
+                    response.BankName = _configuration["BankTransfer:BankName"];
+                    response.BankAccount = _configuration["BankTransfer:AccountNumber"];
+                }
+
+                return response;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        private OrderResponseDTO MapSingleOrder(Order order)
+        {
+            var dto = _mapper.Map<OrderResponseDTO>(order);
+            dto.TotalAmount = order.OrderDetails.Sum(d =>
                 d.LineTotal ?? (d.UnitPrice * d.Quantity))
                 + (order.Freight ?? 0);
 
-            return result;
+            if (order.Customer != null)
+            {
+                dto.CustomerName = !string.IsNullOrWhiteSpace(order.Customer.ContactName)
+                    ? order.Customer.ContactName
+                    : order.Customer.Email;
+            }
+
+            if (order.Employee != null)
+            {
+                dto.EmployeeName = $"{order.Employee.FirstName} {order.Employee.LastName}".Trim();
+            }
+            else if (order.CreatedBy != null &&
+                     order.Customer != null &&
+                     order.Customer.UserId != order.CreatedBy)
+            {
+                dto.EmployeeName = order.CreatedByNavigation?.FullName;
+            }
+
+            return dto;
+        }
+
+        public async Task<int> GetOrderBadgeCountAsync(int userId, string role)
+        {
+            if (role == "Admin")
+            {
+                // Admin: đếm đơn đang chờ duyệt (Status == 0)
+                return await _context.Orders.CountAsync(o => o.Status == 0);
+            }
+
+            if (role == "Employee")
+            {
+                // Employee: đếm đơn do chính nhân viên đó đặt dùm còn đang xử lý / đang giao
+                var employee = await _context.Employees
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.UserId == userId && e.Status == 1);
+
+                return await _context.Orders.CountAsync(o =>
+                    (o.Status == 0 || o.Status == 1) &&
+                    ((employee != null && o.EmployeeId == employee.Id) ||
+                     (o.CreatedBy == userId && (o.Customer == null || o.Customer.UserId != userId))));
+            }
+
+            // Customer: đếm đơn của khách hàng còn đang xử lý / đang giao
+            var customer = await _context.Customers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.Status == 1);
+
+            if (customer == null) return 0;
+
+            return await _context.Orders.CountAsync(o =>
+                o.CustomerId == customer.Id &&
+                (o.Status == 0 || o.Status == 1));
         }
 
 

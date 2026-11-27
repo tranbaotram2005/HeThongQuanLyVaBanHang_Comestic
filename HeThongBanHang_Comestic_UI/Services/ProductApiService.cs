@@ -9,7 +9,7 @@ namespace HeThongBanHang_Comestic_UI.Services
         Task<ProductResponseDTO?> GetByIdAsync(int id);
         Task<List<ProductResponseDTO>> GetByCategoryAsync(int categoryId);
         Task<List<ProductResponseDTO>> FilterByPriceAsync(decimal? minPrice, decimal? maxPrice);
-        Task<(bool Success, string Message)> CreateAsync(ProductCreateDTO dto);
+        Task<(bool Success, string Message, int? ProductId)> CreateAsync(ProductCreateDTO dto);
         Task<(bool Success, string Message)> UpdateAsync(int id, ProductUpdateDTO dto);
         Task<(bool Success, string Message)> UpdateStatusAsync(int id, int status);
     }
@@ -80,11 +80,44 @@ namespace HeThongBanHang_Comestic_UI.Services
                    ?? new List<ProductResponseDTO>();
         }
 
-        public async Task<(bool Success, string Message)> CreateAsync(ProductCreateDTO dto)
+        public async Task<(bool Success, string Message, int? ProductId)> CreateAsync(ProductCreateDTO dto)
         {
             var res = await _httpClient.PostAsJsonAsync("api/Product", dto);
-            var message = await ReadMessageSafeAsync(res);
-            return (res.IsSuccessStatusCode, message ?? (res.IsSuccessStatusCode ? "Thêm thành công." : $"Không thể thêm sản phẩm (HTTP {(int)res.StatusCode})."));
+            var raw = await res.Content.ReadAsStringAsync();
+
+            string? message = null;
+            int? productId = null;
+
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(raw);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("message", out var msgEl) || root.TryGetProperty("Message", out msgEl))
+                    {
+                        message = msgEl.GetString();
+                    }
+                    if (root.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var parsedId))
+                    {
+                        productId = parsedId;
+                    }
+                    else if (root.TryGetProperty("Id", out var idElUpper) && idElUpper.TryGetInt32(out var parsedIdUpper))
+                    {
+                        productId = parsedIdUpper;
+                    }
+                }
+                catch
+                {
+                    message = raw;
+                }
+            }
+
+            return (
+                res.IsSuccessStatusCode,
+                message ?? (res.IsSuccessStatusCode ? "Thêm thành công." : $"Không thể thêm sản phẩm (HTTP {(int)res.StatusCode})."),
+                productId
+            );
         }
         public async Task<(bool Success, string Message)> UpdateAsync(int id, ProductUpdateDTO dto)
         {

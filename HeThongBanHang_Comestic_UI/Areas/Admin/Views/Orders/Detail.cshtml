@@ -1,0 +1,280 @@
+@model OrderResponseDTO
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.Id}";
+    var ship = Model.ShipInfos?.FirstOrDefault();
+    var pay = Model.Payments?.FirstOrDefault();
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 font-weight-bold">Đơn hàng #@Model.Id</h5>
+    <a asp-action="Index" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left mr-1"></i> Quay lại danh sách đơn
+    </a>
+</div>
+
+<div class="card kpi-card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                @if (!string.IsNullOrEmpty(Model.CustomerName))
+                {
+                    <p><b>Khách hàng:</b> @Model.CustomerName</p>
+                }
+                <p><b>Người nhận:</b> @(ship != null ? $"{ship.ShipName} - {ship.ShipPhone} - {ship.ShipAddress}" : Model.Receive)</p>
+                <p><b>Hình thức:</b> @(Model.Receive ?? "Giao tận nơi")</p>
+                @if (!string.IsNullOrEmpty(Model.EmployeeName))
+                {
+                    <p><b>Nhân viên đặt dùm:</b> <span class="badge badge-info">@Model.EmployeeName</span></p>
+                }
+            </div>
+            <div class="col-md-6">
+                <p><b>Ngày đặt:</b> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                <p>
+                    <b>Trạng thái:</b>
+                    @switch (Model.Status)
+                    {
+                        case 0:<span class="badge badge-warning text-dark">Chờ xử lý</span>break;
+                        case 1:<span class="badge badge-info">Đã duyệt / Đang giao</span>break;
+                        case 2:<span class="badge badge-success">Hoàn thành</span>break;
+                        default:<span class="badge badge-danger">Đã hủy</span>break;
+                    }
+                </p>
+                <p>
+                    <b>Thanh toán:</b> @(pay?.Method ?? "---")
+                    @if (pay?.Status == 1)
+                    {
+                        <span class="badge badge-success ml-1">Đã thanh toán</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-warning text-dark ml-1">Chưa thanh toán</span>
+                    }
+                </p>
+                <p><b>Tổng tiền:</b> <span class="text-danger font-weight-bold">@Model.TotalAmount.ToString("N0") đ</span></p>
+            </div>
+        </div>
+
+        <div class="mt-2">
+            @if (Model.Status == 0)
+            {
+                <a asp-action="ApproveOrder" asp-route-id="@Model.Id" asp-route-status="1"
+                   asp-route-returnUrl="@($"/Admin/Orders/Detail/{Model.Id}")"
+                   class="btn btn-primary btn-sm mr-2">
+                    <i class="fas fa-check mr-1"></i> Duyệt đơn
+                </a>
+            }
+            else if (Model.Status == 1)
+            {
+                <a asp-action="ApproveOrder" asp-route-id="@Model.Id" asp-route-status="2"
+                   asp-route-returnUrl="@($"/Admin/Orders/Detail/{Model.Id}")"
+                   class="btn btn-success btn-sm mr-2">
+                    <i class="fas fa-check-double mr-1"></i> Hoàn thành
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card kpi-card">
+    <div class="card-header bg-white font-weight-bold">Chi tiết sản phẩm</div>
+    <div class="card-body p-0">
+        @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+        {
+            <table class="table table-bordered mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Biến thể</th>
+                        <th>Đơn giá</th>
+                        <th>SL</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderDetails)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td>@item.VariantInfo</td>
+                            <td>@item.UnitPrice.ToString("N0") đ</td>
+                            <td>@item.Quantity</td>
+                            <td class="font-weight-bold">@((item.LineTotal ?? (item.UnitPrice * item.Quantity)).ToString("N0")) đ</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="p-4 text-muted">Không có chi tiết đơn hàng.</div>
+        }
+    </div>
+</div>
+
+@{
+    var orderPayments = ViewBag.Payments as List<PaymentResponseDTO> ?? Model.Payments ?? new List<PaymentResponseDTO>();
+    var orderShips = ViewBag.ShipInfos as List<ShipInfoResponseDTO> ?? Model.ShipInfos ?? new List<ShipInfoResponseDTO>();
+    var shippers = ViewBag.Shippers as List<ShipperResponseDTO> ?? new List<ShipperResponseDTO>();
+    var shipperMap = shippers.ToDictionary(s => s.Id, s => s.CompanyName);
+}
+
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card kpi-card h-100">
+            <div class="card-header bg-white font-weight-bold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-credit-card text-primary mr-2"></i>Thanh toán của đơn (#@orderPayments.Count)</span>
+                <a asp-controller="Payment" asp-action="Index" asp-route-orderId="@Model.Id" class="btn btn-xs btn-sm btn-outline-primary">
+                    Xem tất cả theo đơn
+                </a>
+            </div>
+            <div class="card-body">
+                @if (!orderPayments.Any())
+                {
+                    <div class="text-muted small">Chưa có bản ghi thanh toán.</div>
+                }
+                else
+                {
+                    foreach (var p in orderPayments)
+                    {
+                        <div class="border rounded p-3 mb-2 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="font-weight-bold">Giao dịch #@p.Id - @(p.Method ?? "---")</span>
+                                <a asp-controller="Payment" asp-action="Detail" asp-route-id="@p.Id" class="small font-weight-bold">
+                                    Chi tiết &rarr;
+                                </a>
+                            </div>
+                            <div class="small mb-2">
+                                Số tiền: <b class="text-danger">@p.Amount.ToString("N0") đ</b> |
+                                Trạng thái:
+                                @switch (p.Status)
+                                {
+                                    case 1:<span class="badge badge-success">Đã thanh toán</span>break;
+                                    case 2:<span class="badge badge-danger">Thất bại</span>break;
+                                    case 3:<span class="badge badge-secondary">Đã hoàn tiền</span>break;
+                                    default:<span class="badge badge-warning text-dark">Chưa thanh toán</span>break;
+                                }
+                            </div>
+                            @if (p.Status != 3)
+                            {
+                                <form asp-controller="Payment" asp-action="UpdateStatus" asp-route-id="@p.Id" method="post" class="form-inline mt-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnUrl" value="@($"/Admin/Orders/Detail/{Model.Id}")" />
+                                    <select name="status" class="form-control form-control-sm mr-2 mb-1">
+                                        <option value="0" selected="@(p.Status == 0)">Chưa thanh toán</option>
+                                        <option value="1" selected="@(p.Status == 1)" disabled="@(p.Status == 2)">Đã thanh toán</option>
+                                        <option value="2" selected="@(p.Status == 2)">Thất bại</option>
+                                        <option value="3" selected="@(p.Status == 3)">Đã hoàn tiền</option>
+                                    </select>
+                                    <input type="text" name="notes" value="@p.Notes" class="form-control form-control-sm mr-2 mb-1" placeholder="Ghi chú" style="max-width:140px;" />
+                                    <button type="submit" class="btn btn-sm btn-warning mb-1">Cập nhật</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card kpi-card h-100">
+            <div class="card-header bg-white font-weight-bold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-truck text-info mr-2"></i>Thông tin giao hàng (#@orderShips.Count)</span>
+                <a asp-controller="ShipInfo" asp-action="Index" asp-route-orderId="@Model.Id" class="btn btn-xs btn-sm btn-outline-info">
+                    Xem tất cả theo đơn
+                </a>
+            </div>
+            <div class="card-body">
+                @if (!orderShips.Any())
+                {
+                    <div class="text-muted small">Chưa có thông tin giao hàng.</div>
+                }
+                else
+                {
+                    foreach (var s in orderShips)
+                    {
+                        string spName = shipperMap.TryGetValue(s.ShipperId, out var name) ? name : $"Shipper #{s.ShipperId}";
+                        bool shipLocked = s.Status == 3;
+                        <div class="border rounded p-3 mb-2 bg-light">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="font-weight-bold">Vận đơn #@s.Id (@spName)</span>
+                                <a asp-controller="ShipInfo" asp-action="Detail" asp-route-id="@s.Id" class="small font-weight-bold">
+                                    Sửa đầy đủ &rarr;
+                                </a>
+                            </div>
+                            <div class="small mb-2">
+                                <div><b>Người nhận:</b> @s.ShipName - @s.ShipPhone</div>
+                                <div><b>Địa chỉ:</b> @s.ShipAddress @(!string.IsNullOrEmpty(s.ShipCity) ? $", {s.ShipCity}" : "")</div>
+                                <div>
+                                    <b>Trạng thái:</b>
+                                    @switch (s.Status)
+                                    {
+                                        case 0:<span class="badge badge-secondary">Chờ xử lý</span>break;
+                                        case 1:<span class="badge badge-warning text-dark">Chờ lấy hàng</span>break;
+                                        case 2:<span class="badge badge-info">Đang vận chuyển</span>break;
+                                        case 3:<span class="badge badge-success">Đã giao thành công</span>break;
+                                        case 4:<span class="badge badge-danger">Đã hủy</span>break;
+                                    }
+                                </div>
+                            </div>
+                            @if (!shipLocked)
+                            {
+                                <form asp-controller="ShipInfo" asp-action="Update" asp-route-id="@s.Id" method="post" class="mt-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnUrl" value="@($"/Admin/Orders/Detail/{Model.Id}")" />
+                                    <input type="hidden" name="ShipName" value="@s.ShipName" />
+                                    <input type="hidden" name="ShipPhone" value="@s.ShipPhone" />
+                                    <input type="hidden" name="ShipAddress" value="@s.ShipAddress" />
+                                    <input type="hidden" name="ShipCity" value="@s.ShipCity" />
+                                    <input type="hidden" name="ShipRegion" value="@s.ShipRegion" />
+                                    <input type="hidden" name="ShipPostalCode" value="@s.ShipPostalCode" />
+                                    <input type="hidden" name="ShipCountry" value="@s.ShipCountry" />
+                                    <input type="hidden" name="RequiredDate" value="@s.RequiredDate?.ToString("yyyy-MM-dd")" />
+                                    <input type="hidden" name="ShippedDate" value="@s.ShippedDate?.ToString("yyyy-MM-dd")" />
+                                    <input type="hidden" name="Notes" value="@s.Notes" />
+                                    <div class="form-row">
+                                        <div class="col-sm-5 mb-1">
+                                            <select name="ShipperId" class="form-control form-control-sm">
+                                                @foreach (var sp in shippers)
+                                                {
+                                                    <option value="@sp.Id" selected="@(sp.Id == s.ShipperId)">@sp.CompanyName</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4 mb-1">
+                                            <select name="Status" class="form-control form-control-sm">
+                                                <option value="0" selected="@(s.Status == 0)" disabled="@(s.Status == 4)">Chờ xử lý</option>
+                                                <option value="1" selected="@(s.Status == 1)" disabled="@(s.Status == 4)">Chờ lấy hàng</option>
+                                                <option value="2" selected="@(s.Status == 2)" disabled="@(s.Status == 4)">Đang vận chuyển</option>
+                                                <option value="3" selected="@(s.Status == 3)" disabled="@(s.Status == 4)">Đã giao xong</option>
+                                                <option value="4" selected="@(s.Status == 4)">Đã hủy</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-3 mb-1">
+                                            <button type="submit" class="btn btn-sm btn-primary btn-block">Lưu</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

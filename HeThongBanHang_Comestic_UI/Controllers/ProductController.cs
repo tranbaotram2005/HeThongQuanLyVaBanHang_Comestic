@@ -36,15 +36,9 @@ namespace HeThongBanHang_Comestic_UI.Controllers
               int page = 1,
               int record = 9)
         {
-            bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-            var products = isStaff
-                ? await _productService.GetAllForAdminAsync()
-                : (loai.HasValue ? await _productService.GetByCategoryAsync(loai.Value) : await _productService.GetAllAsync());
-
-            if (isStaff && loai.HasValue)
-            {
-                products = products.Where(p => p.CategoryId == loai.Value).ToList();
-            }
+            var products = loai.HasValue
+                ? await _productService.GetByCategoryAsync(loai.Value)
+                : await _productService.GetAllAsync();
             if (!string.IsNullOrWhiteSpace(query))
             {
                 products = products.Where(p =>
@@ -163,8 +157,7 @@ namespace HeThongBanHang_Comestic_UI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Detail(int id)
         {
-            bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-            var detail = await _variantService.GetProductDetailAsync(id, isStaff);
+            var detail = await _variantService.GetProductDetailAsync(id);
             if (detail == null)
             {
                 TempData["Message"] = $"Không thấy sản phẩm có mã {id}";
@@ -176,139 +169,19 @@ namespace HeThongBanHang_Comestic_UI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> DetailPopup(int id)
         {
-            bool isStaff = User.IsInRole("Admin") || User.IsInRole("Employee");
-            var detail = await _variantService.GetProductDetailAsync(id, isStaff);
+            var detail = await _variantService.GetProductDetailAsync(id);
             if (detail == null)
                 return Content("Không tìm thấy sản phẩm");
             return PartialView("_DetailPopup", detail);
         }
 
         [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> Create()
-        {
-            ViewBag.Categories = await _categoryService.GetAllAsync();
-            return View();
-        }
-
-        [Authorize(Roles = "Admin, Employee")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProductCreateDTO model, IFormFile? ImageFile)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Categories = await _categoryService.GetAllAsync();
-                return View(model);
-            }
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                var fileName = Path.GetFileName(ImageFile.FileName);
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Picture", fileName);
-                using var stream = new FileStream(path, FileMode.Create);
-                await ImageFile.CopyToAsync(stream);
-                model.Picture = fileName;
-            }
-            var (success, message) = await _productService.CreateAsync(model);
-            if (!success)
-            {
-                ModelState.AddModelError("", message);
-                ViewBag.Categories = await _categoryService.GetAllAsync();
-                return View(model);
-            }
-            return RedirectToAction("Index");
-        }
+        public IActionResult Create() => RedirectToAction("Create", "Product", new { area = "Admin" });
 
         [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> Edit(int id)
-        {
-            var product = (await _productService.GetAllForAdminAsync()).FirstOrDefault(p => p.Id == id);
-            if (product == null) return NotFound();
-            ViewBag.ProductId = id;
-            ViewBag.Categories = await _categoryService.GetAllAsync();
-            var dto = new ProductUpdateDTO
-            {
-                ProductName = product.ProductName,
-                Brand = product.Brand,
-                Description = product.Description,
-                QuantityPerUnit = product.QuantityPerUnit,
-                CategoryId = product.CategoryId,
-                SupplierId = product.SupplierId,
-                UnitPrice = product.UnitPrice,
-                UnitsInStock = product.UnitsInStock,
-                Picture = product.Picture,
-                Notes = product.Notes
-            };
-            return View(dto);
-        }
+        public IActionResult Edit(int id) => RedirectToAction("Edit", "Product", new { area = "Admin", id });
 
         [Authorize(Roles = "Admin,Employee")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ProductUpdateDTO model, IFormFile? ImageFile)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.ProductId = id;
-                ViewBag.Categories = await _categoryService.GetAllAsync();
-                return View(model);
-            }
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                var fileName = Path.GetFileName(ImageFile.FileName);
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Picture", fileName);
-                using var stream = new FileStream(path, FileMode.Create);
-                await ImageFile.CopyToAsync(stream);
-                model.Picture = fileName;
-            }
-            var (success, message) = await _productService.UpdateAsync(id, model);
-            if (!success)
-            {
-                ModelState.AddModelError("", message);
-                ViewBag.ProductId = id;
-                ViewBag.Categories = await _categoryService.GetAllAsync();
-                return View(model);
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var product = (await _productService.GetAllForAdminAsync()).FirstOrDefault(p => p.Id == id);
-            if (product == null) return NotFound();
-            return View(product);
-        }
-        [Authorize(Roles = "Admin,Employee")]
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            // API dùng status = 0 để ẩn sản phẩm (soft delete)
-            await _productService.UpdateStatusAsync(id, 0);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [Authorize(Roles = "Admin,Employee")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Hide(int id, string? returnUrl = null)
-        {
-            await _productService.UpdateStatusAsync(id, 0);
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-            return RedirectToAction(nameof(Index));
-        }
-
-        [Authorize(Roles = "Admin,Employee")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Show(int id, string? returnUrl = null)
-        {
-            await _productService.UpdateStatusAsync(id, 1);
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                return Redirect(returnUrl);
-            return RedirectToAction(nameof(Index));
-        }
-        
+        public IActionResult Delete(int id) => RedirectToAction("Delete", "Product", new { area = "Admin", id });
     }
 }

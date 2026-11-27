@@ -46,7 +46,8 @@ builder.Services.AddHttpClient<IProductApiService, ProductApiService>(c => c.Bas
 builder.Services.AddHttpClient<IProductVariantApiService, ProductVariantApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
-});
+})
+.AddHttpMessageHandler<AuthHeaderHandler>();
 builder.Services.AddHttpClient<IAccountApiService, AccountApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -60,10 +61,16 @@ builder.Services.AddHttpClient<IWishlistApiService, WishlistApiService>(c => c.B
 builder.Services.AddHttpClient<ISupplierApiService, SupplierApiService>(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<AuthHeaderHandler>();
 
+builder.Services.AddHttpClient<IOptionPresetApiService, OptionPresetApiService>(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<AuthHeaderHandler>();
+
 builder.Services.AddHttpClient<IOrderApiService, OrderApiService>(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<AuthHeaderHandler>();
 
 builder.Services.AddHttpClient<IPaymentApiService, PaymentApiService>(c => c.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<AuthHeaderHandler>();
+
+builder.Services.AddHttpClient<IShipInfoApiService, ShipInfoApiService>(c => c.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<AuthHeaderHandler>();
 var app = builder.Build();
 
@@ -84,6 +91,10 @@ app.UseSession();        // Phải đặt trước Authentication/MapControllerR
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

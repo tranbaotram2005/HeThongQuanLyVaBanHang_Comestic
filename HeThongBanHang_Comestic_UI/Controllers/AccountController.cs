@@ -30,7 +30,7 @@ namespace HeThongBanHang_Comestic_UI.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var (success, message) = await _accountService.RegisterAsync(model);
+            var (success, message) = await _accountService.SendRegisterOtpAsync(model);
             if (!success)
             {
                 ModelState.AddModelError("", message);
@@ -38,7 +38,46 @@ namespace HeThongBanHang_Comestic_UI.Controllers
             }
 
             TempData["SuccessMessage"] = message;
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(VerifyRegisterOtp), new { email = model.Email.Trim() });
+        }
+
+        [HttpGet]
+        public IActionResult VerifyRegisterOtp(string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return RedirectToAction(nameof(Register));
+
+            return View(new VerifyRegisterOtpDTO { Email = email.Trim() });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyRegisterOtp(VerifyRegisterOtpDTO model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var (success, message) = await _accountService.VerifyRegisterOtpAsync(model);
+            if (!success)
+            {
+                ModelState.AddModelError("", message);
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = message + " Bạn có thể đăng nhập ngay.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendRegisterOtp(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return RedirectToAction(nameof(Register));
+
+            var (success, message) = await _accountService.ResendRegisterOtpAsync(email);
+            TempData[success ? "SuccessMessage" : "ErrorMessage"] = message;
+            return RedirectToAction(nameof(VerifyRegisterOtp), new { email = email.Trim() });
         }
 
         [HttpGet]
@@ -94,6 +133,13 @@ namespace HeThongBanHang_Comestic_UI.Controllers
 
             if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
                 return Redirect(ReturnUrl);
+
+            if (data.Roles.Any(r =>
+                    string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(r, "Employee", StringComparison.OrdinalIgnoreCase)))
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            }
 
             return RedirectToAction("Index", "Home");
         }

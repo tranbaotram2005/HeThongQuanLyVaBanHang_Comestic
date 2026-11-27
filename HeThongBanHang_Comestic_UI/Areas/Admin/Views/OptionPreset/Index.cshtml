@@ -1,0 +1,87 @@
+@model List<OptionPresetDTO>
+@{
+    ViewData["Title"] = "Quản lý Option mẫu";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="card kpi-card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div>
+            <h6 class="mb-0 font-weight-bold text-dark">
+                <i class="fas fa-sliders-h text-info mr-2"></i>Danh sách Option mẫu dùng chung (@Model.Count)
+            </h6>
+            <small class="text-muted">Các nhóm thuộc tính mẫu này giúp nhân viên chọn nhanh và đồng bộ tên gọi khi thêm/sửa sản phẩm.</small>
+        </div>
+        <a asp-action="Create" class="btn btn-success btn-sm">
+            <i class="fas fa-plus mr-1"></i> Thêm Option mẫu
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width:70px;">ID</th>
+                        <th style="width:180px;">Tên nhóm Option</th>
+                        <th>Các giá trị gợi ý</th>
+                        <th style="width:230px;">Mô tả</th>
+                        <th style="width:120px;">Trạng thái</th>
+                        <th style="width:130px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr style="@(!item.IsActive ? "opacity: 0.6; background-color: #f1f5f9;" : "")">
+                            <td class="align-middle font-weight-bold">#@item.Id</td>
+                            <td class="align-middle font-weight-bold text-primary">@item.Name</td>
+                            <td class="align-middle">
+                                @foreach (var val in item.Values)
+                                {
+                                    <span class="badge badge-light border mr-1 mb-1 px-2 py-1">@val</span>
+                                }
+                            </td>
+                            <td class="align-middle text-muted small">@item.Description</td>
+                            <td class="align-middle">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge badge-success">Đang bật</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Đã tắt</span>
+                                }
+                            </td>
+                            <td class="align-middle">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xác nhận xóa Option mẫu này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

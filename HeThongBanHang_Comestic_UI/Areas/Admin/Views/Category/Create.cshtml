@@ -1,0 +1,46 @@
+@model CategoryCreateDTO
+@{
+    ViewData["Title"] = "Thêm danh mục";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card kpi-card">
+            <div class="card-header bg-white font-weight-bold py-3">
+                <i class="fas fa-plus-circle text-success mr-2"></i>Thêm danh mục mới
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="form-group">
+                        <label>Tên danh mục *</label>
+                        <input asp-for="CategoryName" class="form-control" placeholder="Nhập tên danh mục" />
+                        <span asp-validation-for="CategoryName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập mô tả"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh danh mục (tải lên hoặc nhập tên file có sẵn trong wwwroot/Category)</label>
+                        <input type="file" name="PictureFile" class="form-control-file mb-2" accept="image/*" />
+                        <input asp-for="Picture" class="form-control" placeholder="Ví dụ: ca1_cleanser.webp" />
+                    </div>
+
+                    <div class="text-right mt-4">
+                        <a asp-action="Index" class="btn btn-secondary mr-2">Quay lại</a>
+                        <button type="submit" class="btn btn-success px-4">Lưu danh mục</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

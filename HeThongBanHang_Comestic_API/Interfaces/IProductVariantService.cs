@@ -6,6 +6,7 @@ namespace HeThongBanHang_Comestic_API.Interfaces
     {
         // Lấy danh sách biến thể theo sản phẩm
         Task<List<ProductVariantResponseDTO>> GetByProductAsync(int productId);
+        Task<List<ProductVariantResponseDTO>> GetByProductForAdminAsync(int productId);
 
         // Lấy chi tiết một biến thể
         Task<ProductVariantResponseDTO?> GetByIdAsync(int id);
@@ -18,5 +19,8 @@ namespace HeThongBanHang_Comestic_API.Interfaces
 
         // Ẩn hoặc kích hoạt lại biến thể
         Task<bool> UpdateStatusAsync(int id, int status, int userId);
+
+        // Đồng bộ nhóm thuộc tính (VD: Dung tích, Mùi hương) và liên kết cho toàn bộ biến thể
+        Task<bool> SyncOptionsAsync(int productId, ProductOptionsSyncDTO dto, int userId);
     }
 }

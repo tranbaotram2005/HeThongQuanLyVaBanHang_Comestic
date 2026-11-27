@@ -31,3 +31,8 @@ publish/
 # Temporary files
 *.tmp
 *.bak
+
+# Local secrets (do not push to Git)
+appsettings.Local.json
+**/appsettings.Local.json
+appsettings.*.local.json

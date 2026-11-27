@@ -1,0 +1,8 @@
+@model int
+
+<a href="@Url.Action("MyOrders", "OrderDetail")" class="btn px-0 ml-3" title="Lịch sử đặt hàng">
+    <i class="fas fa-clipboard-list text-primary"></i>
+    <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">
+        @Model
+    </span>
+</a>

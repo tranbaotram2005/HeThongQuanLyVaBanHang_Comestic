@@ -1,0 +1,176 @@
+@model List<HeThongBanHang_Comestic_UI.DTOs.OrderResponseDTO>
+@{
+    string pageTitle = ViewBag.PageTitle as string ?? "Lịch sử đặt hàng";
+    string roleMode = ViewBag.RoleMode as string ?? "Customer";
+}
+
+<div class="container-fluid px-xl-5 mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h3 class="mb-2"><i class="fas fa-clipboard-list text-primary mr-2"></i>@pageTitle</h3>
+        <div>
+            @if (roleMode == "Employee" || roleMode == "Admin")
+            {
+                <a asp-controller="Employee" asp-action="CreateOrder" class="btn btn-success btn-sm mr-2">
+                    <i class="fa fa-plus"></i> Đặt đơn dùm khách
+                </a>
+                <a asp-controller="Employee" asp-action="Orders" class="btn btn-outline-primary btn-sm">
+                    <i class="fa fa-tasks"></i> Quản lý duyệt đơn
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            @if (roleMode == "Employee")
+            {
+                <span>Bạn chưa có đơn hàng nào đặt dùm khách. Hãy bấm nút <b>"Đặt đơn dùm khách"</b> ở góc phải để tạo đơn mới.</span>
+            }
+            else
+            {
+                <span>Chưa có đơn hàng nào.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive bg-light p-3 rounded shadow-sm">
+            <table class="table table-bordered table-hover bg-white mb-0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng / Người nhận</th>
+                        <th>Nguồn đặt</th>
+                        <th>Ngày đặt</th>
+                        <th>Số SP</th>
+                        <th>Thanh toán</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 190px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var ship = item.ShipInfos?.FirstOrDefault();
+                        var pay = item.Payments?.FirstOrDefault();
+                        string customerDisplay = item.CustomerName ?? ship?.ShipName ?? "Khách hàng";
+                        bool isProxyOrder = !string.IsNullOrEmpty(item.EmployeeName);
+                        bool isPendingBankTransfer = item.Status == 0
+                            && pay != null
+                            && pay.Method == "Chuyển khoản"
+                            && pay.Status == 0;
+
+                        <tr>
+                            <td class="align-middle font-weight-bold">#@item.Id</td>
+                            <td class="align-middle">
+                                <div>@customerDisplay</div>
+                                @if (!string.IsNullOrEmpty(ship?.ShipPhone))
+                                {
+                                    <small class="text-muted">@ship.ShipPhone</small>
+                                }
+                            </td>
+                            <td class="align-middle">
+                                @if (isProxyOrder)
+                                {
+                                    <span class="badge badge-info">NV đặt dùm: @item.EmployeeName</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Khách tự đặt</span>
+                                }
+                                <div><small class="text-muted">@(item.Receive ?? "Giao tận nơi")</small></div>
+                            </td>
+                            <td class="align-middle">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="align-middle text-center">@(item.OrderDetails?.Sum(d => d.Quantity) ?? 0)</td>
+                            <td class="align-middle">
+                                <div>@(pay?.Method ?? "---")</div>
+                                @if (pay?.Status == 1)
+                                {
+                                    <span class="badge badge-success">Đã thanh toán</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning text-dark">Chưa thanh toán</span>
+                                }
+                            </td>
+                            <td class="align-middle font-weight-bold text-danger">
+                                @item.TotalAmount.ToString("N0") đ
+                            </td>
+                            <td class="align-middle">
+                                @switch (item.Status)
+                                {
+                                    case 0:
+                                        <span class="badge badge-warning text-dark">Chờ xử lý</span>
+                                        break;
+                                    case 1:
+                                        <span class="badge badge-info">Đã duyệt / Đang giao</span>
+                                        break;
+                                    case 2:
+                                        <span class="badge badge-success">Hoàn thành</span>
+                                        break;
+                                    default:
+                                        <span class="badge badge-danger">Đã hủy</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="align-middle">
+                                <a asp-controller="OrderDetail" asp-action="Detail" asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-primary mb-1">
+                                    Chi tiết
+                                </a>
+                                @if (roleMode == "Admin" || roleMode == "Employee")
+                                {
+                                    if (item.Status == 0)
+                                    {
+                                        <a asp-controller="Employee" asp-action="ApproveOrder"
+                                           asp-route-id="@item.Id" asp-route-status="1"
+                                           asp-route-returnUrl="/OrderDetail/MyOrders"
+                                           class="btn btn-sm btn-primary mb-1">
+                                            Duyệt
+                                        </a>
+                                    }
+                                    else if (item.Status == 1)
+                                    {
+                                        <a asp-controller="Employee" asp-action="ApproveOrder"
+                                           asp-route-id="@item.Id" asp-route-status="2"
+                                           asp-route-returnUrl="/OrderDetail/MyOrders"
+                                           class="btn btn-sm btn-success mb-1">
+                                            Hoàn thành
+                                        </a>
+                                    }
+                                }
+                                @if (roleMode == "Customer" && isPendingBankTransfer)
+                                {
+                                    <a asp-controller="Payment" asp-action="QrPayment" asp-route-orderId="@item.Id"
+                                       class="btn btn-sm btn-warning mb-1">
+                                        QR
+                                    </a>
+                                }
+                                @if (roleMode == "Customer" && item.Status == 0)
+                                {
+                                    <form asp-controller="OrderDetail" asp-action="Cancel" asp-route-id="@item.Id"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng #@item.Id?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger mb-1">Hủy</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

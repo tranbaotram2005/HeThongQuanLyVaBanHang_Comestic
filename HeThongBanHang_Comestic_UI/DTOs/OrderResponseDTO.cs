@@ -36,6 +36,8 @@
 
         public string? BankName { get; set; }
         public string? ApprovedByName { get; set; }
+        public string? CustomerName { get; set; }
+        public string? EmployeeName { get; set; }
 
         // Chi tiết sản phẩm
         public List<OrderDetailResponseDTO> OrderDetails { get; set; }

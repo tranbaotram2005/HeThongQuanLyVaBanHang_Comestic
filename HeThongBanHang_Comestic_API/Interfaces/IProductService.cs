@@ -15,6 +15,7 @@ namespace HeThongBanHang_Comestic_API.Interfaces
 
         // Thêm sản phẩm
         Task<bool> CreateAsync(ProductCreateDTO dto, int userId);
+        Task<int?> CreateAndReturnIdAsync(ProductCreateDTO dto, int userId);
 
         // Cập nhật sản phẩm
         Task<bool> UpdateAsync(int id, ProductUpdateDTO dto, int userId);

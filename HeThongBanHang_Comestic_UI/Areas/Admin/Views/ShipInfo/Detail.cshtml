@@ -1,0 +1,156 @@
+@model ShipInfoResponseDTO
+@{
+    ViewData["Title"] = $"Chi tiết giao hàng #{Model.Id}";
+    var shippers = ViewBag.Shippers as List<ShipperResponseDTO> ?? new List<ShipperResponseDTO>();
+    var order = ViewBag.Order as OrderResponseDTO;
+    bool isLocked = Model.Status == 3;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 font-weight-bold">Thông tin giao hàng #@Model.Id (Đơn #@Model.OrderId)</h5>
+    <div>
+        <a asp-controller="Orders" asp-action="Detail" asp-route-id="@Model.OrderId" class="btn btn-outline-info btn-sm mr-2">
+            <i class="fas fa-box mr-1"></i> Xem đơn #@Model.OrderId
+        </a>
+        <a asp-action="Index" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Danh sách giao hàng
+        </a>
+    </div>
+</div>
+
+<div class="card kpi-card">
+    <div class="card-header bg-white font-weight-bold py-3 d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-shipping-fast text-primary mr-2"></i>Cập nhật vận chuyển, đơn vị giao hàng & người nhận</span>
+        @switch (Model.Status)
+        {
+            case 0:<span class="badge badge-secondary">Chờ xử lý</span>break;
+            case 1:<span class="badge badge-warning text-dark">Chờ lấy hàng</span>break;
+            case 2:<span class="badge badge-info">Đang vận chuyển</span>break;
+            case 3:<span class="badge badge-success">Đã giao thành công</span>break;
+            case 4:<span class="badge badge-danger">Đã hủy</span>break;
+        }
+    </div>
+    <div class="card-body">
+        @if (isLocked)
+        {
+            <div class="alert alert-success">
+                Đơn giao hàng này đã ở trạng thái <strong>Đã giao thành công</strong> nên không thể chỉnh sửa thêm.
+            </div>
+        }
+        @if (Model.Status == 4)
+        {
+            <div class="alert alert-danger">
+                Thông tin giao hàng đã ở trạng thái <strong>Đã hủy</strong> (không thể khôi phục sang trạng thái khác).
+            </div>
+        }
+
+        <form asp-action="Update" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+
+            @if (order != null)
+            {
+                <div class="mb-3 p-2 bg-light rounded small">
+                    <b>Khách hàng:</b> @(order.CustomerName ?? "---") |
+                    <b>Tổng đơn:</b> <span class="text-danger font-weight-bold">@order.TotalAmount.ToString("N0") đ</span>
+                </div>
+            }
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="font-weight-bold">Đơn vị vận chuyển (Shipper) *</label>
+                    <select name="ShipperId" class="form-control" disabled="@isLocked">
+                        @foreach (var sp in shippers)
+                        {
+                            <option value="@sp.Id" selected="@(sp.Id == Model.ShipperId)">
+                                @sp.CompanyName @(!string.IsNullOrEmpty(sp.Phone) ? $"({sp.Phone})" : "")
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label class="font-weight-bold">Trạng thái vận chuyển *</label>
+                    <select name="Status" class="form-control" disabled="@isLocked">
+                        <option value="0" selected="@(Model.Status == 0)" disabled="@(Model.Status == 4)">0 - Chờ xử lý</option>
+                        <option value="1" selected="@(Model.Status == 1)" disabled="@(Model.Status == 4)">1 - Chờ lấy hàng</option>
+                        <option value="2" selected="@(Model.Status == 2)" disabled="@(Model.Status == 4)">2 - Đang vận chuyển</option>
+                        <option value="3" selected="@(Model.Status == 3)" disabled="@(Model.Status == 4)">3 - Đã giao thành công</option>
+                        <option value="4" selected="@(Model.Status == 4)">4 - Đã hủy giao hàng</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label>Tên người nhận</label>
+                    <input type="text" name="ShipName" value="@Model.ShipName" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Số điện thoại nhận</label>
+                    <input type="text" name="ShipPhone" value="@Model.ShipPhone" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label>Ngày gửi hàng</label>
+                    <input type="date" name="ShippedDate" value="@Model.ShippedDate?.ToString("yyyy-MM-dd")" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label>Ngày giao dự kiến</label>
+                    <input type="date" name="RequiredDate" value="@Model.RequiredDate?.ToString("yyyy-MM-dd")" class="form-control" readonly="@isLocked" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Địa chỉ giao hàng</label>
+                    <input type="text" name="ShipAddress" value="@Model.ShipAddress" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Tỉnh / Thành phố</label>
+                    <input type="text" name="ShipCity" value="@Model.ShipCity" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Khu vực / Quận Huyện</label>
+                    <input type="text" name="ShipRegion" value="@Model.ShipRegion" class="form-control" readonly="@isLocked" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label>Mã bưu chính</label>
+                    <input type="text" name="ShipPostalCode" value="@Model.ShipPostalCode" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Quốc gia</label>
+                    <input type="text" name="ShipCountry" value="@Model.ShipCountry" class="form-control" readonly="@isLocked" />
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Ghi chú vận chuyển</label>
+                    <input type="text" name="Notes" value="@Model.Notes" class="form-control" readonly="@isLocked" />
+                </div>
+            </div>
+
+            @if (!isLocked)
+            {
+                <div class="text-right mt-3">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save mr-1"></i> Lưu thay đổi giao hàng
+                    </button>
+                </div>
+            }
+        </form>
+    </div>
+</div>

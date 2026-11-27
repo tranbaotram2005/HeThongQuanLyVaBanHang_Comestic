@@ -1,4 +1,4 @@
-using System.Security.Claims;
+ï»¿using System.Security.Claims;
 using System.Text;
 using HeThongBanHang_Comestic_API.Data;
 using HeThongBanHang_Comestic_API.Interfaces;
@@ -11,12 +11,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 //// Register your DbContext 
 var getConnectionStr = builder.Configuration.GetConnectionString("MyConnectString");
 builder.Services.AddDbContext<WebApiGtEcommerceContext>(option => option.UseSqlServer(getConnectionStr));
-// ??ng ký Account Service
+// ??ng kï¿½ Account Service
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -33,8 +34,11 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IShipInfoService, ShipInfoService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddSingleton<IOptionPresetService, OptionPresetService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddMemoryCache();
 
-// ??ng ký Password Hasher
+// ??ng kï¿½ Password Hasher
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.AddAutoMapper(cfg =>  // new version  16.x
@@ -77,14 +81,14 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-// ??c c?u hình JWT
+// ??c c?u hï¿½nh JWT
 var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Thi?u c?u hình Jwt:Key");
+    ?? throw new InvalidOperationException("Thi?u c?u hï¿½nh Jwt:Key");
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-// ??ng ký xác th?c JWT
+// ??ng kï¿½ xï¿½c th?c JWT
 builder.Services
     .AddAuthentication(options =>
     {
@@ -117,7 +121,7 @@ builder.Services
         };
     });
 
-// ??ng ký phân quy?n
+// ??ng kï¿½ phï¿½n quy?n
 builder.Services.AddAuthorization();
 
 

@@ -14,11 +14,6 @@
             </div>
         </div>
     </div>
-    <div class="alert alert-info">
-        User: @User.Identity.Name <br>
-        Is Admin? @User.IsInRole("Admin") <br>
-        Is Employee? @User.IsInRole("Employee")
-    </div>
     <partial name="_JavaScript" />
     @RenderSection("Scripts", required: false)
 </body>

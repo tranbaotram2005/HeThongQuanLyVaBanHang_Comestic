@@ -211,5 +211,91 @@ namespace HeThongBanHang_Comestic_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        // =====================================================
+        // 8. ADMIN, EMPLOYEE - LẤY ĐƠN DO CHÍNH NHÂN VIÊN ĐẶT DÙM KHÁCH
+        // GET: api/Order/my-employee
+        // =====================================================
+        [HttpGet("my-employee")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> GetMyEmployeeOrders()
+        {
+            try
+            {
+                int userId = GetUserId();
+                var result = await _orderService.GetOrdersByEmployeeAsync(userId);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        // =====================================================
+        // 9. ADMIN, EMPLOYEE - LẤY DANH SÁCH KHÁCH HÀNG
+        // GET: api/Order/customers
+        // =====================================================
+        [HttpGet("customers")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> GetCustomers()
+        {
+            var result = await _orderService.GetCustomersAsync();
+            return Ok(result);
+        }
+
+        // =====================================================
+        // 10. ADMIN, EMPLOYEE - TẠO ĐƠN HÀNG DÙM KHÁCH
+        // POST: api/Order/employee-create
+        // =====================================================
+        [HttpPost("employee-create")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> CreateOrderByEmployee(EmployeeOrderCreateDTO dto)
+        {
+            try
+            {
+                int userId = GetUserId();
+                var result = await _orderService.CreateOrderByEmployeeAsync(dto, userId);
+                if (result == null)
+                    return BadRequest(new { message = "Không thể tạo đơn hàng dùm khách." });
+
+                return Ok(new
+                {
+                    message = "Tạo đơn hàng dùm khách thành công.",
+                    data = result
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // =====================================================
+        // 11. ĐẾM SỐ ĐƠN HÀNG ĐANG XỬ LÝ CHO BADGE HEADER
+        // GET: api/Order/badge-count
+        // =====================================================
+        [HttpGet("badge-count")]
+        [Authorize]
+        public async Task<IActionResult> GetBadgeCount()
+        {
+            try
+            {
+                int userId = GetUserId();
+                string role = User.IsInRole("Admin")
+                    ? "Admin"
+                    : (User.IsInRole("Employee") ? "Employee" : "Customer");
+
+                int count = await _orderService.GetOrderBadgeCountAsync(userId, role);
+                return Ok(new { count });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
     }
 }

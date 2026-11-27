@@ -1,0 +1,69 @@
+@model HeThongBanHang_Comestic_UI.DTOs.VerifyRegisterOtpDTO
+@{
+    ViewData["Title"] = "Xác thực Email";
+}
+
+<div class="container d-flex justify-content-center align-items-center w-75" style="min-height:80vh;">
+    <div class="col-md-7 col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-1 fw-bold">Xác thực Email</h3>
+                <p class="text-center text-muted mb-4">
+                    Nhập mã OTP gồm 6 chữ số đã gửi về:<br />
+                    <strong class="text-dark">@Model.Email</strong>
+                </p>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success small">@TempData["SuccessMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger small">@TempData["ErrorMessage"]</div>
+                }
+
+                <form asp-action="VerifyRegisterOtp" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Email" />
+
+                    <div class="mb-3">
+                        <label class="font-weight-bold">Mã xác thực OTP (6 số) *</label>
+                        <input asp-for="OtpCode"
+                               maxlength="6"
+                               autocomplete="one-time-code"
+                               class="form-control form-control-lg text-center font-weight-bold"
+                               style="letter-spacing: 8px; font-size: 1.5rem;"
+                               placeholder="000000" />
+                        <span asp-validation-for="OtpCode" class="text-danger small"></span>
+                    </div>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 font-weight-bold">
+                        Xác nhận &amp; Hoàn tất đăng ký
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <form asp-action="ResendRegisterOtp" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@Model.Email" />
+                        <button type="submit" class="btn btn-link btn-sm text-primary">
+                            Không nhận được mã? Gửi lại OTP
+                        </button>
+                    </form>
+                </div>
+
+                <hr class="my-3" />
+                <p class="text-center mb-0 small">
+                    Nhập sai email?
+                    <a asp-action="Register" class="text-secondary fw-semibold">Quay lại trang đăng ký</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,188 @@
+@using HeThongBanHang_Comestic_UI.DTOs
+@model EmployeeOrderCreateDTO
+@{
+    var customers = ViewBag.Customers as List<CustomerSelectDTO> ?? new List<CustomerSelectDTO>();
+    var variantOptions = ViewBag.VariantOptions as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="fa fa-cart-plus text-success mr-2"></i>Đặt đơn hàng dùm khách</h3>
+        <div>
+            <a asp-controller="OrderDetail" asp-action="MyOrders" class="btn btn-outline-primary btn-sm mr-2">
+                Đơn tôi đã đặt dùm
+            </a>
+            <a asp-controller="Employee" asp-action="Orders" class="btn btn-secondary btn-sm">
+                Quản lý đơn hàng
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="CreateOrder" method="post" id="empOrderForm">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white font-weight-bold">
+                        Thông tin khách hàng & giao nhận
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label>Chọn khách hàng *</label>
+                            <select asp-for="CustomerId" id="customerSelect" class="form-control" required>
+                                <option value="">-- Chọn khách hàng --</option>
+                                @foreach (var c in customers)
+                                {
+                                    <option value="@c.Id"
+                                            data-name="@c.ContactName"
+                                            data-phone="@c.Phone">
+                                        @c.ContactName (@(c.Phone ?? c.Email ?? $"ID #{c.Id}"))
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Người nhận *</label>
+                            <input asp-for="ShipName" id="shipNameInput" class="form-control" placeholder="Tên người nhận" required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Số điện thoại *</label>
+                            <input asp-for="ShipPhone" id="shipPhoneInput" class="form-control" placeholder="Số điện thoại" required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Địa chỉ *</label>
+                            <input asp-for="ShipAddress" class="form-control" placeholder="Địa chỉ giao hoặc Tại cửa hàng" required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Hình thức nhận</label>
+                            <select asp-for="Receive" class="form-control">
+                                <option value="Mua tại quầy">Mua tại quầy</option>
+                                <option value="Giao tận nơi">Giao tận nơi</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Phương thức thanh toán</label>
+                            <select asp-for="PaymentMethod" class="form-control">
+                                <option value="Tiền mặt">Tiền mặt</option>
+                                <option value="Chuyển khoản">Chuyển khoản</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label>Ghi chú</label>
+                            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Ghi chú thêm (nếu có)"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <span class="font-weight-bold">Danh sách sản phẩm</span>
+                        <button type="button" id="addItemBtn" class="btn btn-sm btn-success">
+                            <i class="fa fa-plus"></i> Thêm dòng
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered" id="orderItemsTable">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm / Biến thể</th>
+                                    <th style="width: 110px;">Số lượng</th>
+                                    <th style="width: 60px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <select name="Items[0].ProductVariantId" class="form-control variant-select" required>
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            @foreach (var v in variantOptions)
+                                            {
+                                                <option value="@v.Id" data-price="@v.Price">@v.Label</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="Items[0].Quantity" value="1" min="1" class="form-control qty-input" required />
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-danger remove-row-btn" title="Xóa dòng">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h5 class="mb-0">Tạm tính: <span id="empOrderTotal" class="text-danger font-weight-bold">0 đ</span></h5>
+                            <button type="submit" class="btn btn-primary px-4 font-weight-bold">
+                                <i class="fa fa-check"></i> Tạo đơn hàng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const firstRowHtml = $("#orderItemsTable tbody tr:first").prop("outerHTML");
+
+            $("#customerSelect").on("change", function () {
+                const selected = $(this).find("option:selected");
+                const name = selected.data("name");
+                const phone = selected.data("phone");
+                if (name) $("#shipNameInput").val(name);
+                if (phone) $("#shipPhoneInput").val(phone);
+            });
+
+            function reindexRows() {
+                $("#orderItemsTable tbody tr").each(function (idx) {
+                    $(this).find("select").attr("name", `Items[${idx}].ProductVariantId`);
+                    $(this).find("input.qty-input").attr("name", `Items[${idx}].Quantity`);
+                });
+                recalcTotal();
+            }
+
+            function recalcTotal() {
+                let total = 0;
+                $("#orderItemsTable tbody tr").each(function () {
+                    const price = parseFloat($(this).find("select option:selected").data("price")) || 0;
+                    const qty = parseInt($(this).find("input.qty-input").val()) || 0;
+                    total += price * qty;
+                });
+                $("#empOrderTotal").text(total.toLocaleString("vi-VN") + " đ");
+            }
+
+            $("#addItemBtn").on("click", function () {
+                const $newRow = $(firstRowHtml);
+                $newRow.find("select").val("");
+                $newRow.find("input.qty-input").val(1);
+                $("#orderItemsTable tbody").append($newRow);
+                reindexRows();
+            });
+
+            $(document).on("click", ".remove-row-btn", function () {
+                if ($("#orderItemsTable tbody tr").length <= 1) return;
+                $(this).closest("tr").remove();
+                reindexRows();
+            });
+
+            $(document).on("change input", ".variant-select, .qty-input", recalcTotal);
+        })();
+    </script>
+}

@@ -70,8 +70,9 @@
                 </div>
             </div>
             <div class="d-inline-flex align-items-center d-block d-lg-none">
-               @await Component.InvokeAsync("WishlistCount")
-               @await Component.InvokeAsync("Cart");
+                @await Component.InvokeAsync("WishlistCount")
+                @await Component.InvokeAsync("OrderCount")
+                @await Component.InvokeAsync("Cart")
             </div>
         </div>
     </div>
@@ -154,12 +155,13 @@
                             Contact
                         </a>
 
-                        @if (User.IsInRole("Employee"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
                         {
-                            <a asp-controller="Employee"
-                               asp-action="Orders"
-                               class="nav-item nav-link text-warning">
-                                Quản lý đơn
+                            <a asp-area="Admin"
+                               asp-controller="Dashboard"
+                               asp-action="Index"
+                               class="nav-item nav-link text-primary font-weight-bold">
+                                <i class="fas fa-tachometer-alt mr-1"></i>Trang quản trị
                             </a>
                         }
 
@@ -170,25 +172,8 @@
                         <!-- HEART -->
                         @await Component.InvokeAsync("WishlistCount")
 
-                        <!-- NOTIFICATION -->
-                        @{
-                            int notificationCount = 0;
-                        }
-
-                        <a asp-controller="Notification"
-                           asp-action="Index"
-                           class="btn px-0 ml-3">
-
-                            <i class="fas fa-bell text-primary"></i>
-
-                            @if (notificationCount > 0)
-                            {
-                                <span class="badge text-secondary border border-secondary rounded-circle">
-                                    @notificationCount
-                                </span>
-                            }
-
-                        </a>
+                        <!-- ORDER HISTORY -->
+                        @await Component.InvokeAsync("OrderCount")
 
                         <!-- CART -->
                         @await Component.InvokeAsync("Cart")

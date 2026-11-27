@@ -35,5 +35,22 @@ namespace HeThongBanHang_Comestic_API.Interfaces
         Task<bool> CancelMyOrderAsync(
             int orderId,
             int userId);
+
+        // Nhân viên xem các đơn hàng do chính nhân viên đó đặt dùm khách
+        Task<List<OrderResponseDTO>> GetOrdersByEmployeeAsync(
+            int userId);
+
+        // Admin / Employee lấy danh sách khách hàng để đặt đơn dùm
+        Task<List<CustomerSelectDTO>> GetCustomersAsync();
+
+        // Admin / Employee đặt đơn hàng dùm khách hàng
+        Task<OrderResponseDTO?> CreateOrderByEmployeeAsync(
+            EmployeeOrderCreateDTO dto,
+            int employeeUserId);
+
+        // Đếm số đơn hàng đang xử lý hiển thị badge trên Header
+        Task<int> GetOrderBadgeCountAsync(
+            int userId,
+            string role);
     }
 }

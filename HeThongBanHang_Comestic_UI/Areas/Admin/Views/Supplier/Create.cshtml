@@ -1,0 +1,57 @@
+@model SupplierCreateDTO
+@{
+    ViewData["Title"] = "Thêm thương hiệu";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card kpi-card">
+            <div class="card-header bg-white font-weight-bold py-3">
+                <i class="fas fa-plus-circle text-success mr-2"></i>Thêm thương hiệu / Nhà cung cấp
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="form-group">
+                        <label>Tên công ty / Thương hiệu *</label>
+                        <input asp-for="CompanyName" class="form-control" placeholder="Nhập tên công ty" />
+                        <span asp-validation-for="CompanyName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Người liên hệ</label>
+                        <input asp-for="ContactName" class="form-control" placeholder="Nhập tên người liên hệ" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Số điện thoại</label>
+                            <input asp-for="Phone" class="form-control" placeholder="Nhập số điện thoại" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Logo thương hiệu (tải lên hoặc nhập tên file trong wwwroot/Supplier)</label>
+                        <input type="file" name="PictureFile" class="form-control-file mb-2" accept="image/*" />
+                        <input asp-for="Picture" class="form-control" placeholder="Ví dụ: 19_larochpossay.webp" />
+                    </div>
+
+                    <div class="text-right mt-4">
+                        <a asp-action="Index" class="btn btn-secondary mr-2">Quay lại</a>
+                        <button type="submit" class="btn btn-success px-4">Lưu thương hiệu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

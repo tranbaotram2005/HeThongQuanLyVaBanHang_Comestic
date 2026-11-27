@@ -52,54 +52,30 @@
                 </div>
             }
 
-            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+            @if (optionGroups.Count == 0 && Model.Variants.Count > 1)
             {
-                var refererHeader = Context.Request.Headers["Referer"].ToString();
-                var popupReturnUrl = Uri.TryCreate(refererHeader, UriKind.Absolute, out var refUri)
-                    ? refUri.PathAndQuery
-                    : "/";
-
-                <a asp-controller="Product" asp-action="Edit" asp-route-id="@Model.Product.Id"
-                   class="btn btn-warning px-3 mt-3">
-                    <i class="fa fa-edit"></i> Sửa sản phẩm
-                </a>
-
-                @if (Model.Product.Status == 1)
-                {
-                    <form asp-controller="Product" asp-action="Hide" asp-route-id="@Model.Product.Id"
-                          asp-route-returnUrl="@popupReturnUrl" method="post" class="d-inline"
-                          onsubmit="return confirm('Xác nhận ẩn sản phẩm này?');">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-outline-secondary px-3 mt-3">
-                            <i class="fa fa-eye-slash"></i> Ẩn
-                        </button>
-                    </form>
-                }
-                else
-                {
-                    <form asp-controller="Product" asp-action="Show" asp-route-id="@Model.Product.Id"
-                          asp-route-returnUrl="@popupReturnUrl" method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-outline-primary px-3 mt-3">
-                            <i class="fa fa-eye"></i> Hiện
-                        </button>
-                    </form>
-                }
-
-                <a asp-controller="Product" asp-action="Delete" asp-route-id="@Model.Product.Id"
-                   class="btn btn-danger px-3 mt-3">
-                    <i class="fa fa-trash"></i> Xóa
-                </a>
+                <div class="mb-3">
+                    <label class="fw-bold">Phân loại</label>
+                    <div class="d-flex flex-wrap">
+                        @foreach (var v in Model.Variants)
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-dark variant-btn @(v.Id == defaultVariant?.Id ? "active" : "")"
+                                    data-variant-id="@v.Id"
+                                    style="margin:5px; border-radius:20px;">
+                                @(string.IsNullOrWhiteSpace(v.Name) ? $"Phân loại #{v.Id}" : v.Name)
+                            </button>
+                        }
+                    </div>
+                </div>
             }
-            else
-            {
-                <a href="javascript:void(0)"
-                   id="addToCartBtn"
-                   data-variant-id="@(defaultVariant?.Id)"
-                   class="btn btn-success px-4 mt-3">
-                    <i class="fa fa-shopping-cart"></i> Add to Cart
-                </a>
-            }
+
+            <a href="javascript:void(0)"
+               id="addToCartBtn"
+               data-variant-id="@(defaultVariant?.Id)"
+               class="btn btn-success px-4 mt-3">
+                <i class="fa fa-shopping-cart"></i> Add to Cart
+            </a>
             <button class="btn btn-secondary px-4 mt-3" data-dismiss="modal">Back</button>
         </div>
     </div>

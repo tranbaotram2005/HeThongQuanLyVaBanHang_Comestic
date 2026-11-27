@@ -91,9 +91,9 @@ namespace HeThongBanHang_Comestic_API.Controllers
             if (!int.TryParse(userIdValue, out int userId))
                 return Unauthorized();
 
-            var result = await _productService.CreateAsync(dto, userId);
+            var newProductId = await _productService.CreateAndReturnIdAsync(dto, userId);
 
-            if (!result)
+            if (!newProductId.HasValue)
                 return BadRequest(new
                 {
                     message = "Không thể thêm sản phẩm. Vui lòng kiểm tra dữ liệu đầu vào, danh mục và nhà cung cấp."
@@ -101,7 +101,8 @@ namespace HeThongBanHang_Comestic_API.Controllers
 
             return Ok(new
             {
-                message = "Thêm sản phẩm thành công."
+                message = "Thêm sản phẩm thành công.",
+                id = newProductId.Value
             });
         }
 

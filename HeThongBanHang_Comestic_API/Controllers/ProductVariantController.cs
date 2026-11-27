@@ -30,6 +30,17 @@ namespace HeThongBanHang_Comestic_API.Controllers
             return Ok(result);
         }
 
+        // GET: api/ProductVariant/product/5/admin
+        // Admin, Employee: lấy toàn bộ biến thể kể cả đã ẩn
+        [HttpGet("product/{productId}/admin")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> GetByProductForAdmin(int productId)
+        {
+            var result = await _productVariantService.GetByProductForAdminAsync(productId);
+
+            return Ok(result);
+        }
+
         // GET: api/ProductVariant/5
         // Lấy chi tiết biến thể
         [HttpGet("{id}")]
@@ -58,9 +69,9 @@ namespace HeThongBanHang_Comestic_API.Controllers
             var result = await _productVariantService.CreateAsync(dto, userId);
 
             if (!result)
-                return BadRequest("Không thể thêm biến thể. Vui lòng kiểm tra ProductId, SKU và các giá trị nhập vào.");
+                return BadRequest(new { message = "Không thể thêm biến thể. Vui lòng kiểm tra ProductId, SKU và các giá trị nhập vào." });
 
-            return Ok("Thêm biến thể sản phẩm thành công.");
+            return Ok(new { message = "Thêm biến thể sản phẩm thành công." });
         }
 
         // PUT: api/ProductVariant/5
@@ -77,9 +88,9 @@ namespace HeThongBanHang_Comestic_API.Controllers
             var result = await _productVariantService.UpdateAsync(id, dto, userId);
 
             if (!result)
-                return BadRequest("Không thể cập nhật biến thể. Vui lòng kiểm tra ID, SKU và các giá trị nhập vào.");
+                return BadRequest(new { message = "Không thể cập nhật biến thể. Vui lòng kiểm tra ID, SKU và các giá trị nhập vào." });
 
-            return Ok("Cập nhật biến thể sản phẩm thành công.");
+            return Ok(new { message = "Cập nhật biến thể sản phẩm thành công." });
         }
 
         // PATCH: api/ProductVariant/5/status/0
@@ -96,9 +107,26 @@ namespace HeThongBanHang_Comestic_API.Controllers
             var result = await _productVariantService.UpdateStatusAsync(id, status, userId);
 
             if (!result)
-                return BadRequest("Không thể cập nhật trạng thái biến thể.");
+                return BadRequest(new { message = "Không thể cập nhật trạng thái biến thể." });
 
-            return Ok("Cập nhật trạng thái biến thể thành công.");
+            return Ok(new { message = "Cập nhật trạng thái biến thể thành công." });
+        }
+
+        // PUT: api/ProductVariant/product/5/options
+        // Đồng bộ nhóm thuộc tính (Dung tích, Mùi hương...) cho sản phẩm
+        [HttpPut("product/{productId}/options")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> SyncOptions(int productId, ProductOptionsSyncDTO dto)
+        {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdValue, out int userId))
+                return Unauthorized();
+
+            var result = await _productVariantService.SyncOptionsAsync(productId, dto, userId);
+            if (!result)
+                return BadRequest(new { message = "Không thể đồng bộ thuộc tính sản phẩm." });
+
+            return Ok(new { message = "Đồng bộ thuộc tính sản phẩm thành công." });
         }
     }
 }
