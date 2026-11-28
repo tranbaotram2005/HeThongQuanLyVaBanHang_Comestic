@@ -28,7 +28,7 @@
                     <div class="form-row">
                         <div class="form-group col-md-4">
                             <label>Giá hiển thị chung (đ)</label>
-                            <input asp-for="UnitPrice" id="UnitPrice" type="number" min="0" step="1000" class="form-control" />
+                            <input asp-for="UnitPrice" id="UnitPrice" type="number" min="0" step="any" class="form-control" />
                         </div>
                         <div class="form-group col-md-4">
                             <label>Tổng tồn kho chung</label>
@@ -146,10 +146,10 @@
                                             <input type="text" name="Variants[@i].Sku" value="@v.Sku" class="form-control form-control-sm variant-sku-input" placeholder="Mã SKU" />
                                         </td>
                                         <td>
-                                            <input type="number" name="Variants[@i].Price" value="@v.Price" min="0" step="1000" class="form-control form-control-sm variant-price-input" />
+                                            <input type="number" name="Variants[@i].Price" value="@(v.Price?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" min="0" step="any" class="form-control form-control-sm variant-price-input" />
                                         </td>
                                         <td>
-                                            <input type="number" name="Variants[@i].CompareAtPrice" value="@v.CompareAtPrice" min="0" step="1000" class="form-control form-control-sm" />
+                                            <input type="number" name="Variants[@i].CompareAtPrice" value="@(v.CompareAtPrice?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))" min="0" step="any" class="form-control form-control-sm" />
                                         </td>
                                         <td>
                                             <input type="number" name="Variants[@i].StockQuantity" value="@v.StockQuantity" min="0" class="form-control form-control-sm variant-stock-input" />

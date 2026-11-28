@@ -126,10 +126,10 @@
                     <input type="text" name="Variants[${idx}].Sku" class="form-control form-control-sm variant-sku-input" placeholder="Tự tạo nếu trống" />
                 </td>
                 <td>
-                    <input type="number" name="Variants[${idx}].Price" value="${data.price || ""}" min="0" step="1000" class="form-control form-control-sm variant-price-input" placeholder="0" />
+                    <input type="number" name="Variants[${idx}].Price" value="${data.price || ""}" min="0" step="any" class="form-control form-control-sm variant-price-input" placeholder="0" />
                 </td>
                 <td>
-                    <input type="number" name="Variants[${idx}].CompareAtPrice" min="0" step="1000" class="form-control form-control-sm" placeholder="Không bắt buộc" />
+                    <input type="number" name="Variants[${idx}].CompareAtPrice" min="0" step="any" class="form-control form-control-sm" placeholder="Không bắt buộc" />
                 </td>
                 <td>
                     <input type="number" name="Variants[${idx}].StockQuantity" value="${data.stock !== undefined ? data.stock : ""}" min="0" class="form-control form-control-sm variant-stock-input" placeholder="0" />
